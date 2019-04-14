@@ -1,0 +1,4 @@
+**/*.py[cod]
+**/Untitled.*
+**/.ipynb_checkpoints
+data/*
