@@ -4,7 +4,6 @@
 \usepackage[utf8]{inputenc}
 \usepackage[margin=1.2in]{geometry}
 \usepackage{amsmath}
-\usepackage{indentfirst}
 \usepackage{graphicx}
 \usepackage{datetime}
 \usepackage{enumerate}
@@ -13,6 +12,8 @@
 \emergencystretch 1em%
 
 \begin{document}
+
+\setlength{\parindent}{0pt}
 
 \section*{Parte I - Atividades teóricas}
 
@@ -26,13 +27,13 @@ $P(A^C) = 1 - P(A) = 1 - \frac{1}{3} = \frac{2}{3}$
 $P(A^C \cup B) = P(A^C) + P(B) - P(A^CB) = P(A^C) + P(B) - (P(B) - P(AB)) = P(A^C) + P(AB) = \frac{2}{3} + \frac{1}{6} = \frac{5}{6}$
 
 \item
-$P(A \cup B^C) = P(A) + P(B^C) - P(AB^C) = P(B^C) + P(AB) = (1 - P(B)) + P(AB) = (1 - \frac{1}{4}) + \frac{1}{6} = \frac{5}{12}$
+$P(A \cup B^C) = P(A) + P(B^C) - P(AB^C) = P(B^C) + P(AB) = (1 - P(B)) + P(AB) = (1 - \frac{1}{4}) + \frac{1}{6} = \frac{11}{12}$
 
 \item
-$P(AB^C) = P(A) + P(B^C) - P(A \cup B^C) = \frac{1}{3} + \frac{3}{4} - \frac{5}{12} = \frac{8}{12}$
+    $P(AB^C) = P(A) + P(B^C) - P(A \cup B^C) = \frac{1}{3} + \frac{3}{4} - \frac{11}{12} = \frac{2}{12} = \frac{1}{6}$
 
 \item
-    $P(A^C \cup B^C) = 1 - P(AC) = 1 - \fra{1}{6} = \frac{5}{6}$
+    $P(A^C \cup B^C) = 1 - P(AB) = 1 - \frac{1}{6} = \frac{5}{6}$
 
 \end{enumerate}
 
@@ -76,12 +77,14 @@ $D(P_2 || P_1) = \sum\limits_x p(X_2)log_2\left[\frac{p(X_2)}{p(X_1)}\right] = 0
 
 \begin{enumerate}[a)]
 \item
-$\mu_{ML} = arg max_\theta p(x|\mu) = arg max_\theta log[p(x|\mu)] = arg max_\theta \frac{p(x\mu)}{p(\mu)} = x$
+$\mu_{ML} = arg max_\mu p(x|\mu) = arg max_\mu log[p(x|\mu)] = arg max_\mu \frac{p(x\mu)}{p(\mu)} = x$
 
 \item
-$\mu_{ML} = arg max_\theta p(\mathbf{x}|\mu) = arg ax_\theta log[p(\mathbf{x}|\mu)] = arg max_\theta \sum\limits_{k=1}^{N} log[p(x_K|\mu)] = arg max_\theta \sum \limits_{k=1}^{N} log\left [ \frac{p(x_K\mu)}{p(\mu)}\right ] $
+$\mu_{ML} = arg max_\mu p(\mathbf{x}|\mu) = arg ax_\mu log[p(\mathbf{x}|\mu)] = arg max_\mu \sum\limits_{k=1}^{N} log[p(x_k|\mu)] = arg max_\mu \sum \limits_{k=1}^{N} log\left [ \frac{p(x_k\mu)}{p(\mu)}\right ] $
 
 \item
+
+    $\mu_{ML} = \frac{1}{N} \sum \limits_{k=1}^{N} x_k$
 
 \end{enumerate}
 
@@ -89,40 +92,103 @@ $\mu_{ML} = arg max_\theta p(\mathbf{x}|\mu) = arg ax_\theta log[p(\mathbf{x}|\m
 
 \section*{Parte II - Atividade computacional}
 
-\subsection*{Solução fechada com MMQ}
+\subsection*{a) Solução fechada com MMQ}
+
+$
+\mathbf{X} =\begin{bmatrix}
+    \mathbf{x_1} \\
+    \mathbf{x_2} \\
+    \vdots \\
+    \mathbf{x_N}
+\end{bmatrix}
+$
+\hspace{2em}
+$
+\boldsymbol{\Phi} = \boldsymbol{\Phi}(\mathbf{X}) = \begin{bmatrix}
+    1 & \mathbf{x_1} \\
+    1 & \mathbf{x_2} \\
+    &\vdots \\
+    1 & \mathbf{x_N}
+\end{bmatrix}
+$
+\hspace{2em}
+$
+\mathbf{y} =\begin{bmatrix}
+    y_1 \\
+    y_2 \\
+    \vdots \\
+    y_N
+\end{bmatrix}
+$
+
+\vspace{1em}
+
+Modelo:
+\begin{equation}
+    \hat{y} = \hat{y}(\mathbf{X}) = \boldsymbol{\Phi}^T\mathbf{w}
+\end{equation}
+
+Solução ótima com o método de mínimos múltiplos quadrados (MMQ):
+\begin{equation}
+    \mathbf{w} = (\boldsymbol{\Phi}^T\boldsymbol{\Phi})^{-1}\boldsymbol{\Phi}^T\mathbf{y}
+\end{equation}
+
+Raiz quadrada do erro quadrático médio (RMSE) para o modelo treinado com o conjunto de treino:
+
+$ RMSE _{train} = 15.3702$
+\hspace{2em}
+$ RMSE _{test} = 14.2495$
+
+Resultado no conjunto de test:
 
 \begin{figure}[h!]
-  \includegraphics{images/raw.png}
+    \centering
+    \includegraphics[width=10cm]{images/raw.png}
     \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses).}
 \end{figure}
 
-\subsection*{Solução com seleção de atributos pelo wrapper}
+\subsection*{b) Seleção de atributos usando wrapper (backward elimination), validação cruzada (k-fold) e regularização L2}
 
 \begin{figure}[h!]
-  \includegraphics{images/backward.png}
+    \centering
+    \includegraphics[width=10cm]{images/backward.png}
     \caption{Menor RMSE para cada passo do wrapper (atributo retirado).}
 \end{figure}
 
+Modelo escolhido pelo wrapper utilizando k-fold com 5 pastas:
+
+Número de atributos removidos: $10 \quad\quad \lambda: 70 \quad\quad \text{RMSE: } 14.1138$
+
+Atributos escolhidos: 0 (bias) , 1, 2, 3, 4, 5, 6, 9, 11, 18, 20
+
 \begin{figure}[h!]
-  \includegraphics{images/wrapper.png}
-    \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses).}
+    \centering
+    \includegraphics[width=10cm]{images/wrapper.png}
+    \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses) com seleção de atributos usando wrapper.}
 \end{figure}
 
-\subsection*{Solução com seleção de atributos pelo filtro}
+\subsection*{c) Seleção de atributos usando filtro (correlação de Pearson)}
 
 \begin{figure}[h!]
-  \includegraphics{images/corr.png}
-    \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses).}
+    \centering
+    \includegraphics[width=8cm]{images/corr.png}
+    \caption{Matriz de correlação, onde uma cor mais avermelhada significa uma correlação maior (dados foram alinhados na matriz de forma que a primeira linha e coluna correspondem ao rótulo e as próximas linhas e colunas correspondem aos atributos - mês anterior até 20 meses atrás).}
+\end{figure}
+
+Atributos selecionados: 0 (bias) , 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+
+$\lambda: 30 \quad\quad RMSE: 13.8698$
+
+\begin{figure}[h!]
+    \centering
+  \includegraphics[width=10cm]{images/filter.png}
+    \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses) com seleção de atributos usando filtro.}
 \end{figure}
 
 \begin{figure}[h!]
-  \includegraphics{images/filter.png}
-    \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses).}
-\end{figure}
-
-\begin{figure}[h!]
-  \includegraphics{images/comparison.png}
-    \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses).}
+    \centering
+  \includegraphics[width=10cm]{images/comparison.png}
+    \caption{Saída prevista por cada modelo: azul - modelo inicial com 20 atributos, RMSE = 14.2495; amarelo - modelo criado usando wrapper, RMSE = 14.1138; verde - modelo criado usando filtro, RMSE = 13.8698;  em comparação com valores reais (vermelho) dos últimos 5 anos (60 meses).}
 \end{figure}
 
 \end{document}
