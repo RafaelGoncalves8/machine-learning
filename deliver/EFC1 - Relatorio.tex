@@ -157,7 +157,7 @@ Resultado no conjunto de test:
 
 Modelo escolhido pelo wrapper utilizando k-fold com 5 pastas:
 
-Número de atributos removidos: $10 \quad\quad \lambda: 70 \quad\quad \text{RMSE: } 14.1138$
+N de atributos removidos: $10 \quad \lambda: 70 \quad RMSE_{CV}: 14.4200 \quad RMSE_{test}: 14.1138$
 
 Atributos escolhidos: 0 (bias) , 1, 2, 3, 4, 5, 6, 9, 11, 18, 20
 
@@ -168,67 +168,31 @@ Atributos escolhidos: 0 (bias) , 1, 2, 3, 4, 5, 6, 9, 11, 18, 20
 \end{figure}
 
 
-min RMSE = 15.4457249245 | lambda = 70
-
-min RMSE = 15.4368725061 | lambda = 70
-
-min RMSE = 15.4318450853 | lambda = 70
-
-min RMSE = 15.4287714380 | lambda = 70
-
-min RMSE = 15.4261395721 | lambda = 70
-
-min RMSE = 15.4243489321 | lambda = 70
-
-min RMSE = 15.4231081954 | lambda = 70
-
-min RMSE = 15.4214290196 | lambda = 70
-
-min RMSE = 15.4202697965 | lambda = 70
-
-min RMSE = 15.4200527097 | lambda = 70
-
-min RMSE = 15.4212809339 | lambda = 70
-
-min RMSE = 15.4263120869 | lambda = 70
-
-min RMSE = 15.4390084229 | lambda = 60
-
-min RMSE = 15.4890363689 | lambda = 60
-
-min RMSE = 15.5561039311 | lambda = 60
-
-min RMSE = 15.7349123813 | lambda = 60
-
-min RMSE = 16.0097566606 | lambda = 70
-
-min RMSE = 16.0799828192 | lambda = 50
-
-min RMSE = 16.8712573347 | lambda = 60
-
 \begin{table}[]
+    \centering
+    \caption{RMSE mínimo e respectivo lambda para cada número de atributos retirados.}
 \begin{tabular}{lll}
 N atributos retirados & min RMSE & lambda \\
-0                     &          & 70     \\
-1                     &          & 70     \\
-2                     &          & 70     \\
-3                     &          & 70     \\
-4                     &          & 70     \\
-5                     &          & 70     \\
-6                     &          & 70     \\
-7                     &          & 70     \\
-8                     &          & 70     \\
-9                     &          & 70     \\
-10                    &          & 70     \\
-11                    &          & 70     \\
-12                    &          & 70     \\
-13                    &          & 60     \\
-14                    &          & 60     \\
-15                    &          & 60     \\
-16                    &          & 60     \\
-17                    &          & 70     \\
-18                    &          & 50     \\
-19                    &          & 60    
+0                     & 15.4622 & 70     \\
+1                     & 14.4457 & 70     \\
+2                     & 14.4368 & 70     \\
+3                     & 14.4318 & 70     \\
+4                     & 14.4287 & 70     \\
+5                     & 14.4261 & 70     \\
+6                     & 14.4243 & 70     \\
+7                     & 14.4231 & 70     \\
+8                     & 14.4214 & 70     \\
+9                     & 14.4202 & 70     \\
+10                    & 14.4200 & 70     \\
+11                    & 14.4212 & 70     \\
+12                    & 14.4263 & 70     \\
+13                    & 14.4390 & 60     \\
+14                    & 14.4890 & 60     \\
+15                    & 14.5561 & 60     \\
+16                    & 14.7349 & 60     \\
+17                    & 15.0097 & 70     \\
+18                    & 15.0799 & 50     \\
+19                    & 15.8712 & 60
 \end{tabular}
 \end{table}
 
@@ -237,13 +201,15 @@ N atributos retirados & min RMSE & lambda \\
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=8cm]{images/corr.png}
+    \includegraphics[width=6cm]{images/corr.png}
     \caption{Matriz de correlação, onde uma cor mais avermelhada significa uma correlação maior (dados foram alinhados na matriz de forma que a primeira linha e coluna correspondem ao rótulo e as próximas linhas e colunas correspondem aos atributos - mês anterior até 20 meses atrás).}
 \end{figure}
 
+Modelo escolhido pelo filtro (10 atributos com maior correlação):
+
 Atributos selecionados: 0 (bias) , 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
-$\lambda: 30 \quad\quad RMSE: 13.8698$
+$\lambda: 30 \quad\quad RMSE_{CV}: 15.7518 \quad\quad RMSE_{test}: 13.8698$
 
 \begin{figure}[h!]
     \centering
@@ -256,5 +222,7 @@ $\lambda: 30 \quad\quad RMSE: 13.8698$
   \includegraphics[width=10cm]{images/comparison.png}
     \caption{Saída prevista por cada modelo: azul - modelo inicial com 20 atributos, RMSE = 14.2495; amarelo - modelo criado usando wrapper, RMSE = 14.1138; verde - modelo criado usando filtro, RMSE = 13.8698;  em comparação com valores reais (vermelho) dos últimos 5 anos (60 meses).}
 \end{figure}
+
+Ambas as estratégias de seleção de atributos em conjunto com a regularização L2 mostraram melhoria em relação ao uso de todos os 20 atributos sem regularização. Curiosamente, embora o erro de validação tenha sido menor na abordagem com seleção de atributos usando wrapper, o erro no conjunto de testes foi menor na abordagem de filtro. Isso pode ser consequência de (?)
 
 \end{document}
