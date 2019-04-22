@@ -125,7 +125,7 @@ $
 
 Modelo:
 \begin{equation}
-    \hat{y} = \hat{y}(\mathbf{X}) = \boldsymbol{\Phi}^T\mathbf{w}
+    \mathbf{\hat{y}} = \mathbf{\hat{y}}(\mathbf{X}) = \boldsymbol{\Phi}\mathbf{w}
 \end{equation}
 
 Solução ótima com o método de mínimos múltiplos quadrados (MMQ):
@@ -143,7 +143,7 @@ Resultado no conjunto de test:
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=10cm]{images/raw.png}
+    \includegraphics[width=9cm]{images/raw.png}
     \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses).}
 \end{figure}
 
@@ -151,48 +151,52 @@ Resultado no conjunto de test:
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=10cm]{images/backward.png}
+    \includegraphics[width=8cm]{images/backward.png}
     \caption{Menor RMSE para cada passo do wrapper (atributo retirado).}
 \end{figure}
 
 Modelo escolhido pelo wrapper utilizando k-fold com 5 pastas:
 
-N de atributos removidos: $10 \quad \lambda: 70 \quad RMSE_{CV}: 14.4200 \quad RMSE_{test}: 14.1138$
+N de atributos removidos: $9 \quad \lambda: 10000 \quad RMSE_{CV}: 15.4201 \quad RMSE_{test}: 14.4200$
 
-Atributos escolhidos: 0 (bias) , 1, 2, 3, 4, 5, 6, 9, 11, 18, 20
+Atributos escolhidos: 0 (bias) , 1, 2, 3, 4, 5, 6, 8, 9, 11, 18, 20
+
+Solução por MMQ com regularização ridge (L2):
+\begin{equation}
+    \mathbf{w} = (\boldsymbol{\Phi}^T\boldsymbol{\Phi} + \lambda\mathbf{I'})^{-1}\boldsymbol{\Phi}^T\mathbf{y}
+\end{equation}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=10cm]{images/wrapper.png}
+    \includegraphics[width=9cm]{images/wrapper.png}
     \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses) com seleção de atributos usando wrapper.}
 \end{figure}
-
 
 \begin{table}[]
     \centering
     \caption{RMSE mínimo e respectivo lambda para cada número de atributos retirados.}
 \begin{tabular}{lll}
 N atributos retirados & min RMSE & lambda \\
-0                     & 15.4622 & 70     \\
-1                     & 14.4457 & 70     \\
-2                     & 14.4368 & 70     \\
-3                     & 14.4318 & 70     \\
-4                     & 14.4287 & 70     \\
-5                     & 14.4261 & 70     \\
-6                     & 14.4243 & 70     \\
-7                     & 14.4231 & 70     \\
-8                     & 14.4214 & 70     \\
-9                     & 14.4202 & 70     \\
-10                    & 14.4200 & 70     \\
-11                    & 14.4212 & 70     \\
-12                    & 14.4263 & 70     \\
-13                    & 14.4390 & 60     \\
-14                    & 14.4890 & 60     \\
-15                    & 14.5561 & 60     \\
-16                    & 14.7349 & 60     \\
-17                    & 15.0097 & 70     \\
-18                    & 15.0799 & 50     \\
-19                    & 15.8712 & 60
+0                     & 15.4585 & 30000 \\
+1                     & 15.4441 & 30000 \\
+2                     & 15.4355 & 30000 \\
+3                     & 15.4311 & 30000 \\
+4                     & 15.4280 & 30000 \\
+5                     & 15.4255 & 30000 \\
+6                     & 15.4238 & 10000 \\
+7                     & 15.4226 & 10000 \\
+8                     & 15.4212 & 10000 \\
+9                     & 15.4201 & 10000 \\
+10                    & 15.4202 & 10000 \\
+11                    & 15.4216 & 10000 \\
+12                    & 15.4268 & 10000 \\
+13                    & 15.4392 & 6000  \\
+14                    & 15.4893 & 6000  \\
+15                    & 15.5565 & 1000  \\
+16                    & 15.7354 & 0     \\
+17                    & 16.0103 & 0     \\
+18                    & 16.0801 & 0     \\
+19                    & 16.8718 & 0
 \end{tabular}
 \end{table}
 
@@ -201,26 +205,26 @@ N atributos retirados & min RMSE & lambda \\
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=6cm]{images/corr.png}
+    \includegraphics[width=7cm]{images/corr.png}
     \caption{Matriz de correlação, onde uma cor mais avermelhada significa uma correlação maior (dados foram alinhados na matriz de forma que a primeira linha e coluna correspondem ao rótulo e as próximas linhas e colunas correspondem aos atributos - mês anterior até 20 meses atrás).}
 \end{figure}
 
-Modelo escolhido pelo filtro (10 atributos com maior correlação):
+Modelo escolhido pelo filtro (11 atributos com maior correlação):
 
-Atributos selecionados: 0 (bias) , 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+Atributos selecionados: 0 (bias) , 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 
-$\lambda: 30 \quad\quad RMSE_{CV}: 15.7518 \quad\quad RMSE_{test}: 13.8698$
+$\lambda: 10000 \quad\quad RMSE_{CV}: 15.7380 \quad\quad RMSE_{test}: 13.8367$
 
 \begin{figure}[h!]
     \centering
-  \includegraphics[width=10cm]{images/filter.png}
+  \includegraphics[width=9cm]{images/filter.png}
     \caption{Saída prevista pelo modelo (azul) em comparação com valores reais dos últimos 5 anos (60 meses) com seleção de atributos usando filtro.}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-  \includegraphics[width=10cm]{images/comparison.png}
-    \caption{Saída prevista por cada modelo: azul - modelo inicial com 20 atributos, RMSE = 14.2495; amarelo - modelo criado usando wrapper, RMSE = 14.1138; verde - modelo criado usando filtro, RMSE = 13.8698;  em comparação com valores reais (vermelho) dos últimos 5 anos (60 meses).}
+  \includegraphics[width=9cm]{images/comparison.png}
+    \caption{Saída prevista por cada modelo: azul - modelo inicial com 20 atributos, RMSE = 14.2495; amarelo - modelo criado usando wrapper, RMSE = 14.1138; verde - modelo criado usando filtro, RMSE = 13.8367;  em comparação com valores reais (vermelho) dos últimos 5 anos (60 meses).}
 \end{figure}
 
 Ambas as estratégias de seleção de atributos em conjunto com a regularização L2 mostraram melhoria em relação ao uso de todos os 20 atributos sem regularização. Curiosamente, embora o erro de validação tenha sido menor na abordagem com seleção de atributos usando wrapper, o erro no conjunto de testes foi menor na abordagem de filtro. Isso pode ser consequência de (?)
