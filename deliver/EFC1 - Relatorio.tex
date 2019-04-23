@@ -9,7 +9,7 @@
 \usepackage{enumerate}
 \renewcommand{\baselinestretch}{1.5}
 
-\emergencystretch 1em%
+\emergencystretch 1pt%
 \setlength{\parindent}{0pt}
 
 \title{EFC1 - Regressão Linear}
@@ -72,7 +72,7 @@ $H(X_2) = - \sum\limits_x p(X_2)log_2[p(X_2)] = - [0,25 (-2) + 0,25 (-2) + 0,25 
 
 
 \item
-$D(P_1 || P_2) = \sum\limits_x p(X_1)log_2\left[\frac{p(X_1)}{p(X_2)}\right] = 0,1(-1,32) + 0,2(-0,32) + 0,3(-0,26) + 0,4(-0,68) = -0,54$
+$D(P_1 || P_2) = \sum\limits_x p(X_1)log_2\left[\frac{p(X_1)}{p(X_2)}\right] = 0,1(-1,32) + 0,2(-0,32) + 0,3(0,26) + 0,4(0,68) = 0,15$
 
 $D(P_2 || P_1) = \sum\limits_x p(X_2)log_2\left[\frac{p(X_2)}{p(X_1)}\right] = 0,25(1.32 +  0.32 - 0.26 -0.68) = 0,18$
 
@@ -82,14 +82,19 @@ $D(P_2 || P_1) = \sum\limits_x p(X_2)log_2\left[\frac{p(X_2)}{p(X_1)}\right] = 0
 
 \begin{enumerate}[a)]
 \item
-$\mu_{ML} = arg max_\mu p(x|\mu) = arg max_\mu log[p(x|\mu)] = arg max_\mu \frac{p(x\mu)}{p(\mu)} = x$
+    $\mathcal{L}(\mu) = p(x|\mu) = \frac{p(x\mu)}{p(\mu)} = p(x) = f_\mu(x)$
 
 \item
-$\mu_{ML} = arg max_\mu p(\mathbf{x}|\mu) = arg ax_\mu log[p(\mathbf{x}|\mu)] = arg max_\mu \sum\limits_{k=1}^{N} log[p(x_k|\mu)] = arg max_\mu \sum \limits_{k=1}^{N} log\left [ \frac{p(x_k\mu)}{p(\mu)}\right ] $
+    $\mathcal{L}(\mu) = p(\mathbf{x}|\mu) = \prod \limits _{k=1} ^{N} p(x_k|\mu) = \prod\limits_{k=1}^{N} \frac{p(x_k|\mu)}{p(\mu)} = \prod\limits_{k=1}^{N} f_\mu(x_k)$
 
 \item
 
-    $\mu_{ML} = arg max_\mu \sum \limits_{k=1}^{N} log\left [ \frac{p(x_k\mu)}{p(\mu)}\right ]$, sendo a distribuição de dados gaussiana, o estimador que maximiza o logarítimo da verossimilhança é $\mu_{ML} = \frac{1}{N} \sum \limits_{k=1}^{N} x_k$
+    $\mu_{ML} = arg max_\mu \mathcal{L}(\mu) = arg max_\mu ln \left [ \prod\limits_{k=1}^{N} f_\mu(x_k) \right ] =arg max_\mu \sum \limits_{k=1}^{N} ln [ f_\mu (x_k) ] = arg max_\mu \sum \limits_{k=1}^{N} ln \left [ \frac{1}{\sigma \sqrt{2\pi }} e^{- \frac{1}{2} \left (\frac{x - \mu}{\sigma} \right ) ^2} \right ] =  arg max_\mu \sum \limits_{k=1}^{N} \left [ ln \left ( \frac{1}{\sigma \sqrt{2\pi }} \right ) - \frac{1}{2} \left (\frac{x - \mu}{\sigma} \right )^2 \right ] =$
+        
+        $arg max_\mu \sum \limits_{k=1}^{N} - \frac{1}{2} \left (\frac{x - \mu}{\sigma} \right )^2 - N ln ( \sigma \sqrt{2 \pi} ) = argmax _\mu A \iff \frac{dA}{d\mu} = 0 \Rightarrow$
+
+        $\sum \limits _{k=1} ^N \frac{-2}{2} \left ( \frac{x - \mu}{\sigma} \right ) ( -1 ) = 0 \Rightarrow \sum \limits _{k=1}^N x_k - N\mu = 0 \Rightarrow$
+        $\mu_{ML} = \frac{1}{N} \sum \limits _{k=1}^{N} x_k $
 
 \end{enumerate}
 
