@@ -10,10 +10,15 @@
 \renewcommand{\baselinestretch}{1.5}
 
 \emergencystretch 1em%
+\setlength{\parindent}{0pt}
+
+\title{EFC1 - Regressão Linear}
+\author{Rafael Gonçalves - RA: 186062}
 
 \begin{document}
 
-\setlength{\parindent}{0pt}
+
+\maketitle
 
 \section*{Parte I - Atividades teóricas}
 
@@ -84,7 +89,7 @@ $\mu_{ML} = arg max_\mu p(\mathbf{x}|\mu) = arg ax_\mu log[p(\mathbf{x}|\mu)] = 
 
 \item
 
-    $\mu_{ML} = \frac{1}{N} \sum \limits_{k=1}^{N} x_k$
+    $\mu_{ML} = arg max_\mu \sum \limits_{k=1}^{N} log\left [ \frac{p(x_k\mu)}{p(\mu)}\right ]$, sendo a distribuição de dados gaussiana, o estimador que maximiza o logarítimo da verossimilhança é $\mu_{ML} = \frac{1}{N} \sum \limits_{k=1}^{N} x_k$
 
 \end{enumerate}
 
@@ -139,7 +144,7 @@ $ RMSE _{train} = 15.3702$
 \hspace{2em}
 $ RMSE _{test} = 14.2495$
 
-Resultado no conjunto de test:
+Resultado no conjunto de teste:
 
 \begin{figure}[h!]
     \centering
@@ -148,6 +153,11 @@ Resultado no conjunto de test:
 \end{figure}
 
 \subsection*{b) Seleção de atributos usando wrapper (backward elimination), validação cruzada (k-fold) e regularização L2}
+
+Solução por MMQ com regularização ridge (L2):
+\begin{equation}
+    \mathbf{w} = (\boldsymbol{\Phi}^T\boldsymbol{\Phi} + \lambda\mathbf{I'})^{-1}\boldsymbol{\Phi}^T\mathbf{y}
+\end{equation}
 
 \begin{figure}[h!]
     \centering
@@ -160,11 +170,6 @@ Modelo escolhido pelo wrapper utilizando k-fold com 5 pastas:
 N de atributos removidos: $9 \quad \lambda: 10000 \quad RMSE_{CV}: 15.4201 \quad RMSE_{test}: 14.4200$
 
 Atributos escolhidos: 0 (bias) , 1, 2, 3, 4, 5, 6, 8, 9, 11, 18, 20
-
-Solução por MMQ com regularização ridge (L2):
-\begin{equation}
-    \mathbf{w} = (\boldsymbol{\Phi}^T\boldsymbol{\Phi} + \lambda\mathbf{I'})^{-1}\boldsymbol{\Phi}^T\mathbf{y}
-\end{equation}
 
 \begin{figure}[h!]
     \centering
@@ -227,6 +232,9 @@ $\lambda: 10000 \quad\quad RMSE_{CV}: 15.7380 \quad\quad RMSE_{test}: 13.8367$
     \caption{Saída prevista por cada modelo: azul - modelo inicial com 20 atributos, RMSE = 14.2495; amarelo - modelo criado usando wrapper, RMSE = 14.1138; verde - modelo criado usando filtro, RMSE = 13.8367;  em comparação com valores reais (vermelho) dos últimos 5 anos (60 meses).}
 \end{figure}
 
-Ambas as estratégias de seleção de atributos em conjunto com a regularização L2 mostraram melhoria em relação ao uso de todos os 20 atributos sem regularização. Curiosamente, embora o erro de validação tenha sido menor na abordagem com seleção de atributos usando wrapper, o erro no conjunto de testes foi menor na abordagem de filtro. Isso pode ser consequência de (?)
+
+\hspace{2em} Ambas as estratégias de seleção de atributos em conjunto com a regularização L2 mostraram melhoria em relação ao uso de todos os 20 atributos sem regularização. Podemos observar que embora o erro de validação tenha sido menor na abordagem com seleção de atributos usando wrapper, o erro no conjunto de testes foi menor na abordagem de filtro. Isso pode ser consequência de o modelo utilizado ser linear e portanto se beneficiar diretamente por atributos que tenha uma correlação com os rótulos.
+
+\hspace{2em} Também vale notar que o modelo gerado com seleção de atributos pelo wrapper leva em consideração o erro da validação para escolher quais atributos usar, enquanto que o modelo gerado pelo filtro não leva em conta o erro da validação para seleção de atributos, apenas a correlação entre cada atributo e o rótulo e, sendo assim, faz sentido que o modelo do wrapper apresente um erro menor de validação em comparação ao modelo gerado usando filtro. Em todo o caso o resultado nos mostra que o modelo que obteve um melhor desempenho em dados novos foi o modelo gerado com o filtro e é o modelo que deve ser usado em uma aplicação - provavelmente terá melhor desempenho.
 
 \end{document}
