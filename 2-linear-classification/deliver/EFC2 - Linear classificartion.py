@@ -3,7 +3,7 @@
 
 # ## Importa bibliotecas
 
-# In[1]:
+# In[42]:
 
 
 import os
@@ -11,6 +11,7 @@ import urllib.request
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import csv
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
@@ -244,7 +245,7 @@ plt.savefig(os.path.join(image_dir, 'f1.png'), bbox_inches='tight')
 plt.show()
 
 
-# ## Logistic Regression
+# ## Regressão Logística
 
 # In[24]:
 
@@ -299,6 +300,84 @@ plt.show()
 
 
 # # Classificação multi-classe
+
+# ## Download dataset
+
+# In[34]:
+
+
+data_url = 'http://www.dca.fee.unicamp.br/~lboccato/dataset_vehicle.csv'
+data_path = os.path.join(data_dir, 'dataset_vehicle.csv')
+
+urllib.request.urlretrieve(data_url, data_path)
+
+
+# In[36]:
+
+
+get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
+
+
+# ## Importa dataset
+
+# In[40]:
+
+
+X = np.loadtxt(data_path, skiprows=1, usecols=range(18), delimiter=',')
+X.shape
+
+
+# In[52]:
+
+
+y = []
+with open(data_path) as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        y.append(row['Class'])   
+len(y)
+
+
+# In[57]:
+
+
+classes = list(set(y))
+classes
+
+
+# In[58]:
+
+
+Y = np.zeros((len(y), len(classes)))
+for i, e in enumerate(y):
+    if e == classes[0]:
+        Y[i,0] = 1
+    elif e == classes[1]:
+        Y[i,1] = 1
+    elif e == classes[2]:
+        Y[i,2] = 1
+    else:
+        Y[i,3] = 1
+Y.shape
+
+
+# In[61]:
+
+
+holdout_n = int(0.3*len(y))
+
+
+# In[66]:
+
+
+X_test = X[:holdout_n, :]
+X_train = X[holdout_n:,:]
+Y_test = Y[:holdout_n, :]
+Y_train = Y[holdout_n:,:]
+X_train.shape, X_test.shape, Y_train.shape, Y_test.shape
+
+
+# ## Regressão Logística
 
 # In[ ]:
 
