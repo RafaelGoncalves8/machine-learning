@@ -3,7 +3,7 @@
 
 # ## Importa bibliotecas
 
-# In[2]:
+# In[95]:
 
 
 import os
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[3]:
+# In[96]:
 
 
 random.seed = 0
@@ -25,7 +25,7 @@ np.random.seed = 0
 
 # ## Download dataset
 
-# In[4]:
+# In[97]:
 
 
 data_url = 'http://www.dca.fee.unicamp.br/~lboccato/two_moons.csv'
@@ -36,7 +36,7 @@ image_dir = os.path.abspath(os.path.relpath('../doc/images'))
 urllib.request.urlretrieve(data_url, data_path)
 
 
-# In[5]:
+# In[98]:
 
 
 get_ipython().run_cell_magic('bash', '', 'head "../data/two_moons.csv"')
@@ -44,33 +44,33 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/two_moons.csv"')
 
 # ## Importa dataset
 
-# In[6]:
+# In[99]:
 
 
 dataset = np.loadtxt(data_path, skiprows=1, usecols=(1,2,3), delimiter=',')
 
 
-# In[7]:
+# In[100]:
 
 
 dataset.shape
 
 
-# In[8]:
+# In[101]:
 
 
 X = dataset[:,0:2]
 y = dataset[:,2].astype(int)
 
 
-# In[9]:
+# In[102]:
 
 
 mask1 = [i for i, e in enumerate(y) if e]
 mask0 = [i for i, e in enumerate(y) if not e]
 
 
-# In[10]:
+# In[103]:
 
 
 plt.plot(X[mask1, 0], X[mask1,1], 'X')
@@ -84,31 +84,31 @@ plt.show()
 
 # ## Discriminante linear de Fischer
 
-# In[11]:
+# In[104]:
 
 
 y_hat = lambda w, X: np.dot(w.T, X)
 
 
-# In[12]:
+# In[105]:
 
 
 mean_w = lambda w, X: np.dot(w.T, np.mean(X, 0))
 
 
-# In[13]:
+# In[106]:
 
 
 sd_w = lambda w, X: np.sum(np.square(y_hat(w, X) - mean_w(w, X)))
 
 
-# In[14]:
+# In[107]:
 
 
 s1 =np.sum(np.dot(X[mask1] - np.mean(X[mask1], 0), (X[mask1] - np.mean(X[mask1], 0)).T))
 
 
-# In[15]:
+# In[108]:
 
 
 Sw = np.empty((2,2))
@@ -121,26 +121,26 @@ for i in mask0:
 Sw
 
 
-# In[16]:
+# In[109]:
 
 
 Sb = np.dot((np.mean(X[mask1], 0) - np.mean(X[mask0],0)),(np.mean(X[mask1], 0) - np.mean(X[mask0],0)).T)
 
 
-# In[17]:
+# In[110]:
 
 
 J = lambda w: np.dot(np.dot(w.T, Sb), w)/np.dot(np.dot(w.T, Sw), w)
 
 
-# In[18]:
+# In[111]:
 
 
 w = np.dot(np.linalg.inv(Sw),(mu1 - mu2))
 w
 
 
-# In[19]:
+# In[112]:
 
 
 plt.plot(X[mask1, 0], X[mask1,1], 'X', zorder=1)
@@ -164,13 +164,13 @@ plt.show()
 
 # ### Projeção em w
 
-# In[20]:
+# In[113]:
 
 
 proj = lambda X, W: np.dot(X, W)
 
 
-# In[21]:
+# In[114]:
 
 
 out = proj(X, w)
@@ -180,22 +180,23 @@ plt.savefig(os.path.join(image_dir, 'stem_proj.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[22]:
+# In[115]:
 
 
 plt.hist([out[mask1], out[mask0]], color=['C0', 'C1'])
+plt.savefig(os.path.join(image_dir, 'hist.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[23]:
+# In[116]:
 
 
 def fischer(X, W, thres):
     out = proj(X, W)
-    return np.array([1 if e>thres else 0 for e in out])
+    return np.array([1 if e<thres else 0 for e in out])
 
 
-# In[76]:
+# In[117]:
 
 
 def roc_curve(X, y, w, thres_v):
@@ -216,11 +217,12 @@ def roc_curve(X, y, w, thres_v):
                     tn += 1
         tpr = tp/(tp+fn)
         fpr = fp/(fp+tn)
+        #print((tp+tn)/(tp+tn+fp+fn))
         roc.append([fpr, tpr])
     return np.array(roc)
 
 
-# In[84]:
+# In[118]:
 
 
 thres_v = [0.001*e for e in range(-30, 30)]
@@ -229,8 +231,11 @@ plt.plot(roc[:,0], roc[:,1], 'C0-')
 plt.plot([0, 1], [0, 1],'r--')
 plt.xlim([0, 1])
 plt.ylim([0, 1])
+plt.title("ROC curve")
+plt.legend(["tpr/fpr", "tpr=fpr"])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
+plt.savefig(os.path.join(image_dir, 'roc.png'), bbox_inches='tight')
 plt.show()
 
 
