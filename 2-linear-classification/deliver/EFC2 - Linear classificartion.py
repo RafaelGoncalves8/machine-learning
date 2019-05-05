@@ -3,7 +3,7 @@
 
 # ## Importa bibliotecas
 
-# In[95]:
+# In[1]:
 
 
 import os
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[96]:
+# In[2]:
 
 
 random.seed = 0
@@ -25,7 +25,7 @@ np.random.seed = 0
 
 # ## Download dataset
 
-# In[97]:
+# In[3]:
 
 
 data_url = 'http://www.dca.fee.unicamp.br/~lboccato/two_moons.csv'
@@ -36,7 +36,7 @@ image_dir = os.path.abspath(os.path.relpath('../doc/images'))
 urllib.request.urlretrieve(data_url, data_path)
 
 
-# In[98]:
+# In[4]:
 
 
 get_ipython().run_cell_magic('bash', '', 'head "../data/two_moons.csv"')
@@ -44,33 +44,39 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/two_moons.csv"')
 
 # ## Importa dataset
 
-# In[99]:
+# In[5]:
 
 
 dataset = np.loadtxt(data_path, skiprows=1, usecols=(1,2,3), delimiter=',')
 
 
-# In[100]:
+# In[6]:
 
 
 dataset.shape
 
 
-# In[101]:
+# In[7]:
 
 
 X = dataset[:,0:2]
 y = dataset[:,2].astype(int)
 
 
-# In[102]:
+# In[8]:
+
+
+Phi = np.column_stack((np.ones(X.shape[0]), X))
+
+
+# In[9]:
 
 
 mask1 = [i for i, e in enumerate(y) if e]
 mask0 = [i for i, e in enumerate(y) if not e]
 
 
-# In[103]:
+# In[10]:
 
 
 plt.plot(X[mask1, 0], X[mask1,1], 'X')
@@ -82,33 +88,15 @@ plt.savefig(os.path.join(image_dir, 'data.png'), bbox_inches='tight')
 plt.show()
 
 
-# ## Discriminante linear de Fischer
+# ## Discriminante linear de Fischer (LDA)
 
-# In[104]:
-
-
-y_hat = lambda w, X: np.dot(w.T, X)
+# In[11]:
 
 
-# In[105]:
+y_hat = lambda w, X: np.dot(X, w)
 
 
-mean_w = lambda w, X: np.dot(w.T, np.mean(X, 0))
-
-
-# In[106]:
-
-
-sd_w = lambda w, X: np.sum(np.square(y_hat(w, X) - mean_w(w, X)))
-
-
-# In[107]:
-
-
-s1 =np.sum(np.dot(X[mask1] - np.mean(X[mask1], 0), (X[mask1] - np.mean(X[mask1], 0)).T))
-
-
-# In[108]:
+# In[12]:
 
 
 Sw = np.empty((2,2))
@@ -121,26 +109,26 @@ for i in mask0:
 Sw
 
 
-# In[109]:
+# In[13]:
 
 
-Sb = np.dot((np.mean(X[mask1], 0) - np.mean(X[mask0],0)),(np.mean(X[mask1], 0) - np.mean(X[mask0],0)).T)
+Sb = np.dot((np.mean(X[mask0], 0) - np.mean(X[mask1],0)),(np.mean(X[mask0], 0) - np.mean(X[mask1],0)).T)
 
 
-# In[110]:
+# In[14]:
 
 
 J = lambda w: np.dot(np.dot(w.T, Sb), w)/np.dot(np.dot(w.T, Sw), w)
 
 
-# In[111]:
+# In[15]:
 
 
 w = np.dot(np.linalg.inv(Sw),(mu1 - mu2))
 w
 
 
-# In[112]:
+# In[16]:
 
 
 plt.plot(X[mask1, 0], X[mask1,1], 'X', zorder=1)
@@ -164,23 +152,23 @@ plt.show()
 
 # ### Projeção em w
 
-# In[113]:
+# In[17]:
 
 
-proj = lambda X, W: np.dot(X, W)
+lda = lambda X, w: -np.dot(X, w)
 
 
-# In[114]:
+# In[18]:
 
 
-out = proj(X, w)
+out = lda(X, w)
 plt.stem(out[mask1], basefmt='.', linefmt='C0.', markerfmt='C0X')
 plt.stem(out[mask0], basefmt='.', linefmt='C1.', markerfmt='C1o')
 plt.savefig(os.path.join(image_dir, 'stem_proj.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[115]:
+# In[19]:
 
 
 plt.hist([out[mask1], out[mask0]], color=['C0', 'C1'])
@@ -188,21 +176,24 @@ plt.savefig(os.path.join(image_dir, 'hist.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[116]:
+# ### Curva ROC
+
+# In[20]:
 
 
-def fischer(X, W, thres):
-    out = proj(X, W)
-    return np.array([1 if e<thres else 0 for e in out])
+def decision(X, w, thres, model):
+    out = model(X, w)
+    return np.array([1 if e > thres else 0 for e in out])
 
 
-# In[117]:
+# In[21]:
 
 
-def roc_curve(X, y, w, thres_v):
+def roc_curve(X, y, w, thres_v, model):
     roc = []
+    f1_v = []
     for t in thres_v:
-        out = fischer(X, w, t)
+        out = decision(X, w, t, model)
         tp = fp = tn = fn = 0
         for i, e in enumerate(out):
             if e:
@@ -217,27 +208,97 @@ def roc_curve(X, y, w, thres_v):
                     tn += 1
         tpr = tp/(tp+fn)
         fpr = fp/(fp+tn)
-        #print((tp+tn)/(tp+tn+fp+fn))
+        f1 = 2*tp/(2*tp + fn + fp)
+        f1_v.append([t, f1])
         roc.append([fpr, tpr])
-    return np.array(roc)
+    return np.array(roc), np.array(f1_v)
 
 
-# In[118]:
+# In[22]:
 
 
-thres_v = [0.001*e for e in range(-30, 30)]
-roc = roc_curve(X, y, w, thres_v)
+thres_v = [0.001*e for e in range(-30, 31)]
+roc, f1 = roc_curve(X, y, w, thres_v, lda)
 plt.plot(roc[:,0], roc[:,1], 'C0-')
 plt.plot([0, 1], [0, 1],'r--')
 plt.xlim([0, 1])
 plt.ylim([0, 1])
 plt.title("ROC curve")
-plt.legend(["tpr/fpr", "tpr=fpr"])
+plt.legend(["ROC", "tpr=fpr"])
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.savefig(os.path.join(image_dir, 'roc.png'), bbox_inches='tight')
 plt.show()
 
+
+# ### F1 score
+
+# In[23]:
+
+
+plt.plot(f1[:,0], f1[:,1], 'C0-')
+plt.title("F1 score x threshold value")
+plt.ylabel('F1 Score')
+plt.xlabel('Threshold')
+plt.savefig(os.path.join(image_dir, 'f1.png'), bbox_inches='tight')
+plt.show()
+
+
+# ## Logistic Regression
+
+# In[24]:
+
+
+g = lambda z: 1/(1 + np.exp(-z))
+
+
+# In[25]:
+
+
+lr = lambda Phi, w: g(np.dot(Phi, w))
+
+
+# In[26]:
+
+
+mmq = lambda Phi, y: np.dot(np.dot(np.linalg.inv(np.dot(Phi.T, Phi)), Phi.T), y)
+
+
+# In[27]:
+
+
+w = mmq(Phi, y)
+
+
+# In[32]:
+
+
+thres_v = [0.001*e for e in range(300,701, 5)]
+roc, f1 = roc_curve(Phi, y, w, thres_v, lr)
+plt.plot(roc[:,0], roc[:,1], 'C0-')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.title("ROC curve")
+plt.legend(["ROC", "tpr=fpr"])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.savefig(os.path.join(image_dir, 'roc_lr.png'), bbox_inches='tight')
+plt.show()
+
+
+# In[33]:
+
+
+plt.plot(f1[:,0], f1[:,1], 'C0-')
+plt.title("F1 score x threshold value")
+plt.ylabel('F1 Score')
+plt.xlabel('Threshold')
+plt.savefig(os.path.join(image_dir, 'f1_lr.png'), bbox_inches='tight')
+plt.show()
+
+
+# # Classificação multi-classe
 
 # In[ ]:
 
