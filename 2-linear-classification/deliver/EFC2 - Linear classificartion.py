@@ -3,7 +3,7 @@
 
 # ## Importa bibliotecas
 
-# In[42]:
+# In[47]:
 
 
 import os
@@ -15,7 +15,7 @@ import csv
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[2]:
+# In[48]:
 
 
 random.seed = 0
@@ -26,7 +26,7 @@ np.random.seed = 0
 
 # ## Download dataset
 
-# In[3]:
+# In[49]:
 
 
 data_url = 'http://www.dca.fee.unicamp.br/~lboccato/two_moons.csv'
@@ -37,7 +37,7 @@ image_dir = os.path.abspath(os.path.relpath('../doc/images'))
 urllib.request.urlretrieve(data_url, data_path)
 
 
-# In[4]:
+# In[50]:
 
 
 get_ipython().run_cell_magic('bash', '', 'head "../data/two_moons.csv"')
@@ -45,39 +45,39 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/two_moons.csv"')
 
 # ## Importa dataset
 
-# In[5]:
+# In[51]:
 
 
 dataset = np.loadtxt(data_path, skiprows=1, usecols=(1,2,3), delimiter=',')
 
 
-# In[6]:
+# In[52]:
 
 
 dataset.shape
 
 
-# In[7]:
+# In[53]:
 
 
 X = dataset[:,0:2]
 y = dataset[:,2].astype(int)
 
 
-# In[8]:
+# In[54]:
 
 
 Phi = np.column_stack((np.ones(X.shape[0]), X))
 
 
-# In[9]:
+# In[55]:
 
 
 mask1 = [i for i, e in enumerate(y) if e]
 mask0 = [i for i, e in enumerate(y) if not e]
 
 
-# In[10]:
+# In[56]:
 
 
 plt.plot(X[mask1, 0], X[mask1,1], 'X')
@@ -91,45 +91,54 @@ plt.show()
 
 # ## Discriminante linear de Fischer (LDA)
 
-# In[11]:
+# In[57]:
 
 
 y_hat = lambda w, X: np.dot(X, w)
 
 
-# In[12]:
+# In[108]:
 
 
-Sw = np.empty((2,2))
+X[i].shape, mu0.shape
+
+
+# In[116]:
+
+
+Sw = np.zeros((2,2))
 mu1 = np.mean(X[mask1], 0)
-mu2 = np.mean(X[mask0], 0)
-for i in mask1:
-    Sw += np.dot((X[i] - mu1).T,(X[i] - mu1))
+mu0 = np.mean(X[mask0], 0)
+
 for i in mask0:
-    Sw += np.dot((X[i] - mu2).T,(X[i] - mu2))
+    Sw += np.dot((X[i].reshape((2,1)) - mu0.reshape((1,2))),((X[i].reshape((2,1)) - mu0.reshape((1,2)))).T)
+for i in mask1:
+    Sw += np.dot((X[i].reshape((2,1)) - mu1.reshape((1,2))),((X[i].reshape((2,1)) - mu1.reshape((1,2)))).T)
 Sw
 
 
-# In[13]:
+# In[153]:
 
 
-Sb = np.dot((np.mean(X[mask0], 0) - np.mean(X[mask1],0)),(np.mean(X[mask0], 0) - np.mean(X[mask1],0)).T)
+Sb = np.dot((mu1 - mu0),(mu1 - mu0).T)
+Sb
 
 
-# In[14]:
+# In[154]:
 
 
 J = lambda w: np.dot(np.dot(w.T, Sb), w)/np.dot(np.dot(w.T, Sw), w)
 
 
-# In[15]:
+# In[159]:
 
 
-w = np.dot(np.linalg.inv(Sw),(mu1 - mu2))
+w = np.dot(np.linalg.inv(Sw),(mu1 - mu0))
+w = w/np.linalg.norm(w)
 w
 
 
-# In[16]:
+# In[160]:
 
 
 plt.plot(X[mask1, 0], X[mask1,1], 'X', zorder=1)
@@ -143,7 +152,7 @@ plt.quiver(*origin, w[0], w[1], width=0.006, color='black', zorder=3)
 
 # w0 = 0
 # x = np.linspace(-1.5, 2.5, 1000)
-# gx = -(w[0]/w[1])*x - (w[0]/w[1])*w0
+# gx = w[1]/w[0]*x
 # plt.plot(x, gx, 'r', zorder=4)
 
 plt.legend(['y=1', 'y=0', 'w', 'thres = 0'])
@@ -153,13 +162,13 @@ plt.show()
 
 # ### Projeção em w
 
-# In[17]:
+# In[168]:
 
 
-lda = lambda X, w: -np.dot(X, w)
+lda = lambda X, w: np.dot(X, w)
 
 
-# In[18]:
+# In[169]:
 
 
 out = lda(X, w)
@@ -169,17 +178,17 @@ plt.savefig(os.path.join(image_dir, 'stem_proj.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[19]:
+# In[175]:
 
 
-plt.hist([out[mask1], out[mask0]], color=['C0', 'C1'])
+plt.hist([out[mask1], out[mask0]], bins=30, color=['C0', 'C1'])
 plt.savefig(os.path.join(image_dir, 'hist.png'), bbox_inches='tight')
 plt.show()
 
 
 # ### Curva ROC
 
-# In[20]:
+# In[171]:
 
 
 def decision(X, w, thres, model):
@@ -187,7 +196,7 @@ def decision(X, w, thres, model):
     return np.array([1 if e > thres else 0 for e in out])
 
 
-# In[21]:
+# In[172]:
 
 
 def roc_curve(X, y, w, thres_v, model):
@@ -215,10 +224,10 @@ def roc_curve(X, y, w, thres_v, model):
     return np.array(roc), np.array(f1_v)
 
 
-# In[22]:
+# In[173]:
 
 
-thres_v = [0.001*e for e in range(-30, 31)]
+thres_v = [0.01*e for e in range(-50, 51)]
 roc, f1 = roc_curve(X, y, w, thres_v, lda)
 plt.plot(roc[:,0], roc[:,1], 'C0-')
 plt.plot([0, 1], [0, 1],'r--')
@@ -234,7 +243,7 @@ plt.show()
 
 # ### F1 score
 
-# In[23]:
+# In[174]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -247,31 +256,31 @@ plt.show()
 
 # ## Regressão Logística
 
-# In[24]:
+# In[34]:
 
 
 g = lambda z: 1/(1 + np.exp(-z))
 
 
-# In[25]:
+# In[35]:
 
 
 lr = lambda Phi, w: g(np.dot(Phi, w))
 
 
-# In[26]:
+# In[36]:
 
 
 mmq = lambda Phi, y: np.dot(np.dot(np.linalg.inv(np.dot(Phi.T, Phi)), Phi.T), y)
 
 
-# In[27]:
+# In[37]:
 
 
 w = mmq(Phi, y)
 
 
-# In[32]:
+# In[38]:
 
 
 thres_v = [0.001*e for e in range(300,701, 5)]
@@ -288,7 +297,7 @@ plt.savefig(os.path.join(image_dir, 'roc_lr.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[33]:
+# In[39]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -303,7 +312,7 @@ plt.show()
 
 # ## Download dataset
 
-# In[34]:
+# In[40]:
 
 
 data_url = 'http://www.dca.fee.unicamp.br/~lboccato/dataset_vehicle.csv'
@@ -312,7 +321,7 @@ data_path = os.path.join(data_dir, 'dataset_vehicle.csv')
 urllib.request.urlretrieve(data_url, data_path)
 
 
-# In[36]:
+# In[41]:
 
 
 get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
@@ -320,14 +329,14 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
 
 # ## Importa dataset
 
-# In[40]:
+# In[42]:
 
 
 X = np.loadtxt(data_path, skiprows=1, usecols=range(18), delimiter=',')
 X.shape
 
 
-# In[52]:
+# In[43]:
 
 
 y = []
@@ -338,14 +347,14 @@ with open(data_path) as csvfile:
 len(y)
 
 
-# In[57]:
+# In[44]:
 
 
 classes = list(set(y))
 classes
 
 
-# In[58]:
+# In[45]:
 
 
 Y = np.zeros((len(y), len(classes)))

@@ -11,4 +11,10 @@ Exercises and projects for machine learning course at Unicamp - IA009 C
         - Filter (Pearson correlation)
     - Cross-validation
         - K-fold
+  - __02 - Linear Classification__
+    - Linear Discriminant Analysis (LDA)
+    - Logistic Regression
+    - k-NN
+    - ROC curve
+    - F1-score
 
