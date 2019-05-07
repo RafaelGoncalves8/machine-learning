@@ -62,12 +62,15 @@ dataset.shape
 
 X = dataset[:,0:2]
 y = dataset[:,2].astype(int)
+y = y.reshape((y.shape[0], 1))
+X.shape, y.shape
 
 
 # In[8]:
 
 
 Phi = np.column_stack((np.ones(X.shape[0]), X))
+Phi.shape
 
 
 # In[9]:
@@ -154,15 +157,24 @@ plt.savefig(os.path.join(image_dir, 'proj.png'), bbox_inches='tight')
 plt.show()
 
 
+# In[17]:
+
+
+mu = np.array([np.average(X[:,0]), np.average(X[:,1])])
+delta = np.array([(np.max(X[:,0]) - np.min(X[:,0])), (np.max(X[:,1]) - np.min(X[:,1]))])
+
+X = (X - np.ones([X.shape[0],1])*mu)*(np.ones([X.shape[0],1])*(1/delta))
+
+
 # ### Projeção em w
 
-# In[17]:
+# In[18]:
 
 
 lda = lambda X, w: np.dot(X, w)
 
 
-# In[18]:
+# In[19]:
 
 
 out = lda(X, w)
@@ -172,7 +184,7 @@ plt.savefig(os.path.join(image_dir, 'stem_proj.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[19]:
+# In[20]:
 
 
 plt.hist([out[mask1], out[mask0]], bins=30, color=['C0', 'C1'])
@@ -182,7 +194,7 @@ plt.show()
 
 # ### Curva ROC
 
-# In[20]:
+# In[21]:
 
 
 def decision(X, w, thres, model):
@@ -190,7 +202,7 @@ def decision(X, w, thres, model):
     return np.array([1 if e > thres else 0 for e in out])
 
 
-# In[21]:
+# In[22]:
 
 
 def confusion(out, y):
@@ -209,7 +221,7 @@ def confusion(out, y):
     return tp, fp, fn, tn
 
 
-# In[22]:
+# In[23]:
 
 
 def roc_curve(X, y, w, thres_v, model):
@@ -226,7 +238,7 @@ def roc_curve(X, y, w, thres_v, model):
     return np.array(roc), np.array(f1_v)
 
 
-# In[23]:
+# In[24]:
 
 
 thres_v = [0.01*e for e in range(-200, 201)]
@@ -245,7 +257,7 @@ plt.show()
 
 # ### F1 score
 
-# In[24]:
+# In[25]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -258,90 +270,92 @@ plt.show()
 
 # ## Regressão Logística
 
-# In[25]:
+# In[26]:
 
 
 g = lambda z: 1/(1 + np.exp(-z))
 
 
-# In[26]:
+# In[27]:
 
 
 lr = lambda Phi, w: g(np.dot(Phi, w))
 
 
-# In[27]:
+# In[28]:
 
 
 mmq = lambda Phi, y: np.dot(np.dot(np.linalg.inv(np.dot(Phi.T, Phi)), Phi.T), y)
 
 
-# In[28]:
+# In[29]:
 
 
 w = mmq(Phi, y)
 
 
-# In[198]:
+# In[30]:
 
 
 def J(y_hat, y):
     J = 0
     for e, f in zip(y, y_hat):
         J += e*np.log10(f) + (1-e)*np.log10(1-f)
-    return -J/y.shape[0]
+    return (-J/y.shape[0])[0]
 
 
-# In[199]:
+# In[31]:
 
 
-def gradient_descent_step(y_hat, y, w, alpha):
-    y = y.reshape((y.shape[0],1))
+def gradient_descent_step(Phi, y_hat, y, w, alpha):
     grad = -np.dot((y - y_hat).T, Phi)/y_hat.shape[0]
     grad = np.sum(grad, 0)/y_hat.shape[0]
+    grad = grad.reshape((grad.shape[0], 1))
     return w - alpha*grad
 
 
-# In[225]:
+# In[32]:
 
 
-def gradient_descent(Phi, y, w, alpha, epochs, early_stop_param):
+def gradient_descent(Phi, y, w, alpha, epochs, early_stop_param, v=0):
     epoch = count = 0
     min_error = 999
     while epoch < epochs and count < early_stop_param:
         y_hat = lr(Phi, w)
         error = J(y_hat, y)
-        w = gradient_descent_step(y_hat, y, w, alpha)
+        w = gradient_descent_step(Phi, y_hat, y, w, alpha)
         if error < min_error:
             min_error = error
             count = 0
         else:
             count += 1
-        print('.', end='')
+        if v:
+            print('.', end='')
         epoch += 1
     
     return w
 
 
-# In[226]:
+# In[33]:
 
 
-w = 0.001*np.random.random([3])
+w = 0.1*np.random.random([3])
+w = w.reshape((w.shape[0], 1))
 
 
-# In[227]:
+# In[34]:
 
 
-w = gradient_descent(Phi, y, w, 0.001, 1000, 10)
+w = gradient_descent(Phi, y, w, 5, 5000, 10, 1)
 
 
-# In[228]:
+# In[35]:
 
 
 w
 
 
-# In[229]:
+# In[36]:
 
 
 thres_v = [0.001*e for e in range(0,1001, 5)]
@@ -358,7 +372,7 @@ plt.savefig(os.path.join(image_dir, 'roc_lr.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[230]:
+# In[37]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -373,7 +387,7 @@ plt.show()
 
 # ## Download dataset
 
-# In[231]:
+# In[38]:
 
 
 data_url = 'http://www.dca.fee.unicamp.br/~lboccato/dataset_vehicle.csv'
@@ -382,7 +396,7 @@ data_path = os.path.join(data_dir, 'dataset_vehicle.csv')
 urllib.request.urlretrieve(data_url, data_path)
 
 
-# In[232]:
+# In[39]:
 
 
 get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
@@ -390,14 +404,14 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
 
 # ## Importa dataset
 
-# In[233]:
+# In[40]:
 
 
 X = np.loadtxt(data_path, skiprows=1, usecols=range(18), delimiter=',')
 X.shape
 
 
-# In[234]:
+# In[41]:
 
 
 y = []
@@ -408,14 +422,14 @@ with open(data_path) as csvfile:
 len(y)
 
 
-# In[235]:
+# In[42]:
 
 
 classes = list(set(y))
 classes
 
 
-# In[236]:
+# In[43]:
 
 
 Y = np.zeros((len(y), len(classes)))
@@ -431,13 +445,13 @@ for i, e in enumerate(y):
 Y.shape
 
 
-# In[237]:
+# In[44]:
 
 
 holdout_n = int(0.3*len(y))
 
 
-# In[238]:
+# In[45]:
 
 
 X_test = X[:holdout_n, :]
@@ -447,15 +461,110 @@ Y_train = Y[holdout_n:,:]
 X_train.shape, X_test.shape, Y_train.shape, Y_test.shape
 
 
+# In[46]:
+
+
+Phi_train = np.column_stack((np.ones(X_train.shape[0]), X_train))
+Phi_test = np.column_stack((np.ones(X_test.shape[0]), X_test))
+
+
 # ## Regressão Logística
+
+# In[105]:
+
+
+Q = len(classes)
+W = 0.1*np.random.random(((Q*(Q-1))//2, Phi_test.shape[1]))
+W.shape
+
+
+# In[106]:
+
+
+k = 0
+mask = [[]]*W.shape[0]
+aux = []
+for i in range(Q-1):
+    for j in range(i+1, Q):
+        mask[k] = [l for l, (e, f) in enumerate(zip(Y_train[:,i],Y_train[:,j])) if (e or f)]
+        k += 1
+        aux.append((i, j))
+
+
+# In[107]:
+
+
+for i, m in enumerate(mask):
+    w = W[i].reshape((W.shape[1], 1))
+    y = Y_train[m,aux[i][0]].reshape((Y_train[m].shape[0], 1))
+    X = Phi_train[m,:]
+    grad = gradient_descent(X, y, w, 0.01, 10000, 10)[:,0]
+    W[i] = grad[:]
+print(W)
+
+
+# In[108]:
+
+
+print(aux)
+
+
+# In[120]:
+
+
+def one_vs_one(Phi, W):
+    votes = np.zeros((Phi.shape[0], 4))
+    ans = []
+
+    for i, a in enumerate(aux):
+        w = W[i].reshape((W.shape[1], 1))
+        X = Phi
+        y = decision(X, w, 0.5, lr)
+        for j, e in enumerate(y):
+            if e:
+                votes[j, a[0]] += 1
+            else:
+                votes[j, a[1]] += 1
+    for e in votes:
+        ans.append(np.argmax(e))
+        
+    return ans
+
+
+# In[121]:
+
+
+y_hat = one_vs_one(Phi_train, W)
+
+
+# In[124]:
+
+
+Y_hat = np.zeros((len(y), len(classes)))
+for i, e in enumerate(y):
+    if e == classes[0]:
+        Y_hat[i,0] = 1
+    elif e == classes[1]:
+        Y_hat[i,1] = 1
+    elif e == classes[2]:
+        Y_hat[i,2] = 1
+    else:
+        Y_hat[i,3] = 1
+
+
+# In[127]:
+
+
+J(Y_hat, Y_train)
+
+
+# ## K-nearest Neighbours
 
 # In[ ]:
 
 
-W = np.
 
 
-# ## K-nearest Neighbours
 
 # In[ ]:
 
