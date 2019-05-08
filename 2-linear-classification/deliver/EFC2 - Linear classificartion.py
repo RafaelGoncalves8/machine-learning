@@ -404,14 +404,14 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
 
 # ## Importa dataset
 
-# In[40]:
+# In[303]:
 
 
 X = np.loadtxt(data_path, skiprows=1, usecols=range(18), delimiter=',')
 X.shape
 
 
-# In[41]:
+# In[304]:
 
 
 y = []
@@ -422,14 +422,14 @@ with open(data_path) as csvfile:
 len(y)
 
 
-# In[42]:
+# In[305]:
 
 
 classes = list(set(y))
 classes
 
 
-# In[43]:
+# In[306]:
 
 
 Y = np.zeros((len(y), len(classes)))
@@ -445,13 +445,22 @@ for i, e in enumerate(y):
 Y.shape
 
 
-# In[44]:
+# In[307]:
 
 
 holdout_n = int(0.3*len(y))
 
 
-# In[45]:
+# In[308]:
+
+
+mu = np.array([np.average(X[:,i]) for i in range(X.shape[1])])
+delta = np.array([(np.max(X[:,i]) - np.min(X[:,i])) for i in range(X.shape[1])])
+
+X = (X - np.ones([X.shape[0],1])*mu)*(np.ones([X.shape[0],1])*(1/delta))
+
+
+# In[309]:
 
 
 X_test = X[:holdout_n, :]
@@ -461,7 +470,7 @@ Y_train = Y[holdout_n:,:]
 X_train.shape, X_test.shape, Y_train.shape, Y_test.shape
 
 
-# In[46]:
+# In[310]:
 
 
 Phi_train = np.column_stack((np.ones(X_train.shape[0]), X_train))
@@ -470,15 +479,15 @@ Phi_test = np.column_stack((np.ones(X_test.shape[0]), X_test))
 
 # ## Regressão Logística
 
-# In[105]:
+# In[448]:
 
 
 Q = len(classes)
-W = 0.1*np.random.random(((Q*(Q-1))//2, Phi_test.shape[1]))
+W = 0.01*np.random.random(((Q*(Q-1))//2, Phi_test.shape[1]))
 W.shape
 
 
-# In[106]:
+# In[449]:
 
 
 k = 0
@@ -491,25 +500,56 @@ for i in range(Q-1):
         aux.append((i, j))
 
 
-# In[107]:
+# In[ ]:
 
 
 for i, m in enumerate(mask):
     w = W[i].reshape((W.shape[1], 1))
     y = Y_train[m,aux[i][0]].reshape((Y_train[m].shape[0], 1))
     X = Phi_train[m,:]
-    grad = gradient_descent(X, y, w, 0.01, 10000, 10)[:,0]
+    grad = gradient_descent(X, y, w, 1200, 5000, 1)[:,0]
     W[i] = grad[:]
 print(W)
 
 
-# In[108]:
+# In[ ]:
+
+
+thres_v = [0.001*e for e in range(0,1001, 5)]
+w = W[0].reshape((W.shape[1], 1))
+y = Y_train[mask[0],aux[0][0]].reshape((Y_train[mask[0]].shape[0], 1))
+X = Phi_train[mask[0],:]
+roc, f1 = roc_curve(X, y, w, thres_v, lr)
+plt.plot(roc[:,0], roc[:,1], 'C0-')
+plt.plot([0, 1], [0, 1],'r--')
+plt.xlim([0, 1])
+plt.ylim([0, 1])
+plt.title("ROC curve")
+plt.legend(["ROC", "tpr=fpr"])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.savefig(os.path.join(image_dir, 'roc_lr.png'), bbox_inches='tight')
+plt.show()
+
+
+# In[ ]:
+
+
+plt.plot(f1[:,0], f1[:,1], 'C0-')
+plt.title("F1 score x threshold value")
+plt.ylabel('F1 Score')
+plt.xlabel('Threshold')
+plt.savefig(os.path.join(image_dir, 'f1_lr.png'), bbox_inches='tight')
+plt.show()
+
+
+# In[ ]:
 
 
 print(aux)
 
 
-# In[120]:
+# In[ ]:
 
 
 def one_vs_one(Phi, W):
@@ -519,25 +559,25 @@ def one_vs_one(Phi, W):
     for i, a in enumerate(aux):
         w = W[i].reshape((W.shape[1], 1))
         X = Phi
-        y = decision(X, w, 0.5, lr)
+        y = lr(X, w)
         for j, e in enumerate(y):
-            if e:
-                votes[j, a[0]] += 1
+            if e > 0.5:
+                votes[j, a[0]] += np.abs(e - 0.5)
             else:
-                votes[j, a[1]] += 1
+                votes[j, a[1]] += np.abs(e - 0.5)
     for e in votes:
+        print(e)
         ans.append(np.argmax(e))
-        
     return ans
 
 
-# In[121]:
+# In[ ]:
 
 
 y_hat = one_vs_one(Phi_train, W)
 
 
-# In[124]:
+# In[ ]:
 
 
 Y_hat = np.zeros((len(y), len(classes)))
@@ -552,13 +592,32 @@ for i, e in enumerate(y):
         Y_hat[i,3] = 1
 
 
-# In[127]:
+# In[ ]:
 
 
 J(Y_hat, Y_train)
 
 
 # ## K-nearest Neighbours
+
+# In[ ]:
+
+
+y_hat
+
+
+# In[ ]:
+
+
+Y_train[:10]
+
+
+# In[ ]:
+
+
+y = np.argmax(Y_train, 1)
+sum((y == np.array(y_hat)))/y.shape[0]
+
 
 # In[ ]:
 
