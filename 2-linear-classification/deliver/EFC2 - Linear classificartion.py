@@ -221,7 +221,7 @@ def confusion(out, y):
     return tp, fp, fn, tn
 
 
-# In[23]:
+# In[67]:
 
 
 def roc_curve(X, y, w, thres_v, model):
@@ -238,7 +238,7 @@ def roc_curve(X, y, w, thres_v, model):
     return np.array(roc), np.array(f1_v)
 
 
-# In[24]:
+# In[68]:
 
 
 thres_v = [0.01*e for e in range(-200, 201)]
@@ -257,7 +257,7 @@ plt.show()
 
 # ### F1 score
 
-# In[25]:
+# In[69]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -270,31 +270,31 @@ plt.show()
 
 # ## Regressão Logística
 
-# In[26]:
+# In[70]:
 
 
 g = lambda z: 1/(1 + np.exp(-z))
 
 
-# In[27]:
+# In[71]:
 
 
 lr = lambda Phi, w: g(np.dot(Phi, w))
 
 
-# In[28]:
+# In[72]:
 
 
 mmq = lambda Phi, y: np.dot(np.dot(np.linalg.inv(np.dot(Phi.T, Phi)), Phi.T), y)
 
 
-# In[29]:
+# In[73]:
 
 
 w = mmq(Phi, y)
 
 
-# In[30]:
+# In[74]:
 
 
 def J(y_hat, y):
@@ -304,7 +304,7 @@ def J(y_hat, y):
     return (-J/y.shape[0])[0]
 
 
-# In[31]:
+# In[75]:
 
 
 def gradient_descent_step(Phi, y_hat, y, w, alpha):
@@ -314,7 +314,7 @@ def gradient_descent_step(Phi, y_hat, y, w, alpha):
     return w - alpha*grad
 
 
-# In[32]:
+# In[76]:
 
 
 def gradient_descent(Phi, y, w, alpha, epochs, early_stop_param, v=0):
@@ -336,7 +336,7 @@ def gradient_descent(Phi, y, w, alpha, epochs, early_stop_param, v=0):
     return w
 
 
-# In[33]:
+# In[77]:
 
 
 w = 0.1*np.random.random([3])
@@ -404,14 +404,14 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
 
 # ## Importa dataset
 
-# In[303]:
+# In[40]:
 
 
 X = np.loadtxt(data_path, skiprows=1, usecols=range(18), delimiter=',')
 X.shape
 
 
-# In[304]:
+# In[41]:
 
 
 y = []
@@ -422,14 +422,14 @@ with open(data_path) as csvfile:
 len(y)
 
 
-# In[305]:
+# In[42]:
 
 
 classes = list(set(y))
 classes
 
 
-# In[306]:
+# In[43]:
 
 
 Y = np.zeros((len(y), len(classes)))
@@ -445,13 +445,13 @@ for i, e in enumerate(y):
 Y.shape
 
 
-# In[307]:
+# In[44]:
 
 
 holdout_n = int(0.3*len(y))
 
 
-# In[308]:
+# In[45]:
 
 
 mu = np.array([np.average(X[:,i]) for i in range(X.shape[1])])
@@ -460,7 +460,7 @@ delta = np.array([(np.max(X[:,i]) - np.min(X[:,i])) for i in range(X.shape[1])])
 X = (X - np.ones([X.shape[0],1])*mu)*(np.ones([X.shape[0],1])*(1/delta))
 
 
-# In[309]:
+# In[46]:
 
 
 X_test = X[:holdout_n, :]
@@ -470,7 +470,7 @@ Y_train = Y[holdout_n:,:]
 X_train.shape, X_test.shape, Y_train.shape, Y_test.shape
 
 
-# In[310]:
+# In[47]:
 
 
 Phi_train = np.column_stack((np.ones(X_train.shape[0]), X_train))
@@ -479,7 +479,7 @@ Phi_test = np.column_stack((np.ones(X_test.shape[0]), X_test))
 
 # ## Regressão Logística
 
-# In[448]:
+# In[48]:
 
 
 Q = len(classes)
@@ -487,7 +487,7 @@ W = 0.01*np.random.random(((Q*(Q-1))//2, Phi_test.shape[1]))
 W.shape
 
 
-# In[449]:
+# In[49]:
 
 
 k = 0
@@ -500,7 +500,7 @@ for i in range(Q-1):
         aux.append((i, j))
 
 
-# In[ ]:
+# In[50]:
 
 
 for i, m in enumerate(mask):
@@ -509,47 +509,9 @@ for i, m in enumerate(mask):
     X = Phi_train[m,:]
     grad = gradient_descent(X, y, w, 1200, 5000, 1)[:,0]
     W[i] = grad[:]
-print(W)
 
 
-# In[ ]:
-
-
-thres_v = [0.001*e for e in range(0,1001, 5)]
-w = W[0].reshape((W.shape[1], 1))
-y = Y_train[mask[0],aux[0][0]].reshape((Y_train[mask[0]].shape[0], 1))
-X = Phi_train[mask[0],:]
-roc, f1 = roc_curve(X, y, w, thres_v, lr)
-plt.plot(roc[:,0], roc[:,1], 'C0-')
-plt.plot([0, 1], [0, 1],'r--')
-plt.xlim([0, 1])
-plt.ylim([0, 1])
-plt.title("ROC curve")
-plt.legend(["ROC", "tpr=fpr"])
-plt.ylabel('True Positive Rate')
-plt.xlabel('False Positive Rate')
-plt.savefig(os.path.join(image_dir, 'roc_lr.png'), bbox_inches='tight')
-plt.show()
-
-
-# In[ ]:
-
-
-plt.plot(f1[:,0], f1[:,1], 'C0-')
-plt.title("F1 score x threshold value")
-plt.ylabel('F1 Score')
-plt.xlabel('Threshold')
-plt.savefig(os.path.join(image_dir, 'f1_lr.png'), bbox_inches='tight')
-plt.show()
-
-
-# In[ ]:
-
-
-print(aux)
-
-
-# In[ ]:
+# In[54]:
 
 
 def one_vs_one(Phi, W):
@@ -566,18 +528,18 @@ def one_vs_one(Phi, W):
             else:
                 votes[j, a[1]] += np.abs(e - 0.5)
     for e in votes:
-        print(e)
+        #print(e)
         ans.append(np.argmax(e))
     return ans
 
 
-# In[ ]:
+# In[63]:
 
 
-y_hat = one_vs_one(Phi_train, W)
+y_hat = one_vs_one(Phi_test, W)
 
 
-# In[ ]:
+# In[64]:
 
 
 Y_hat = np.zeros((len(y), len(classes)))
@@ -592,38 +554,57 @@ for i, e in enumerate(y):
         Y_hat[i,3] = 1
 
 
-# In[ ]:
+# In[66]:
 
 
-J(Y_hat, Y_train)
-
-
-# ## K-nearest Neighbours
-
-# In[ ]:
-
-
-y_hat
-
-
-# In[ ]:
-
-
-Y_train[:10]
-
-
-# In[ ]:
-
-
-y = np.argmax(Y_train, 1)
+y = np.argmax(Y_test, 1)
 sum((y == np.array(y_hat)))/y.shape[0]
 
 
+# In[86]:
+
+
+def confusion(y_hat, y, n_classes):
+    ans = np.zeros((n_classes, n_classes))
+    for i, (e, f) in enumerate(zip(y, y_hat)):
+        ans[e][f] += 1
+    return ans
+
+
+# In[87]:
+
+
+print(classes)
+cm = confusion(y_hat, y, len(classes))
+
+
+# In[103]:
+
+
+N = len(y)/4
+cax = plt.imshow(cm, interpolation='nearest', cmap=plt.cm.coolwarm, vmin=0, vmax=N)
+classNames = classes
+plt.title('Confusion Matrix')
+plt.ylabel('True label')
+plt.xlabel('Predicted label')
+tick_marks = np.arange(len(classNames))
+plt.xticks(tick_marks, classNames, rotation=45)
+plt.yticks(tick_marks, classNames)
+for i, e in enumerate(cm):
+    for j, f in enumerate(e):
+        plt.text(j,i, str(int(cm[i][j])))
+plt.colorbar(cax)
+plt.show()
+
+
 # In[ ]:
 
 
+for i, e in cm:
+    for 
 
 
+# ## K-nearest Neighbours
 
 # In[ ]:
 
