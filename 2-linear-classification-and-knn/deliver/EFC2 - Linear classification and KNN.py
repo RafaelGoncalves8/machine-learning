@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# Rafael Gonçalves (RA: 186062)
+
 # ## Importa bibliotecas
 
 # In[1]:
@@ -348,7 +350,7 @@ w = w.reshape((w.shape[0], 1))
 # In[34]:
 
 
-w = gradient_descent(Phi, y, w, 5, 5000, 10, 1)
+w = gradient_descent(Phi, y, w, 5, 5000, 10, 0)
 
 
 # In[35]:
@@ -533,7 +535,6 @@ def one_vs_one(Phi, W):
             votes[j, a[0]] += e
             votes[j, a[1]] += 1-e
     for e in votes:
-        #print(e)
         ans.append(np.argmax(e))
     return ans
 
@@ -583,7 +584,7 @@ print(classes)
 cm = confusion(y_hat, y_test, len(classes))
 
 
-# In[80]:
+# In[57]:
 
 
 N = len(y_test)/4
@@ -645,32 +646,32 @@ def knn_predict(X_train, Y_train, X_test, k):
     return y_test
 
 
-# In[68]:
+# In[62]:
 
 
 y_hat = knn_predict(X_train, Y_train, X_test, 5)
 
 
-# In[69]:
+# In[63]:
 
 
 y_test = np.argmax(Y_test, 1)
 np.sum((y_test == np.array(y_hat)))/y_test.shape[0]
 
 
-# In[70]:
+# In[64]:
 
 
 avg_acc = np.sum(cm, 0)
 
 
-# In[71]:
+# In[66]:
 
 
-for k in [1, 2, 5, 10, 20, 50]:
+for k in [1, 3, 6, 10, 30, 60, 100]:
     y_hat = knn_predict(X_train, Y_train, X_test, k)
     cm = confusion(y_hat, y_test, len(classes))
-    N = len(y)/4
+    N = len(y_test)/4
     cax = plt.imshow(cm, interpolation='nearest', cmap=plt.cm.coolwarm, vmin=0, vmax=N)
     classNames = classes
     plt.title('Confusion Matrix k = '+str(k))
@@ -684,10 +685,11 @@ for k in [1, 2, 5, 10, 20, 50]:
             plt.text(j,i, str(int(cm[i][j])))
     plt.colorbar(cax)
     plt.show()
+    print("Average accuracy: {:.4f}".format(np.sum(np.diag(cm))/np.sum(cm)))
 
 
-# In[ ]:
-
-
-
-
+# Houve pouca variação na acurácia com a variação do número k, porém o melhor modelo entre os testados foi com k = 6 (acurácia média = 0.6957). Modelos com k muito pequeno podem generalizar mal por mapear apenas o ponto mais perto ou poucos pontos mais pertos, porém, um k muito grande gera um modelo com uma capacidade muito baixa de estimar as classes, por considerar muitos vizinhos.
+# 
+# O mesmo efeito sobre as classes 'opel' e 'saab' pode ser observado.
+# 
+# Em comparação com o modelo de regressão logística (acurácia média = 0.8024), o modelo knn se comportou com um desempenho menor para todos os k's testados. Neste modelo não há um treino propriamente dito, e mesmo levando em conta o tempo que demora para estimar, usa muito menos processamento do que para treinar os parâmetros da regressão logística.
