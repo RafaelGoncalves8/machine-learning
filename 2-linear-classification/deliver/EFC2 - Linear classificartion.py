@@ -22,7 +22,7 @@ random.seed = 0
 np.random.seed = 0
 
 
-# # Classificação Binária
+# # 1 - Classificação Binária
 
 # ## Download dataset
 
@@ -92,6 +92,8 @@ plt.savefig(os.path.join(image_dir, 'data.png'), bbox_inches='tight')
 plt.show()
 
 
+# A dsitribuição de dados acima não pode ser completamente separada por modelos lineares (não há hiperplano que separe completamente os dados das duas classes). 
+
 # ## Discriminante linear de Fischer (LDA)
 
 # In[11]:
@@ -147,15 +149,12 @@ plt.xlabel('x0'), plt.ylabel('x1')
 plt.title("Direção de projeção")
 plt.quiver(*origin, w[0], w[1], width=0.006, color='black', zorder=3)
 
-# w0 = 0
-# x = np.linspace(-1.5, 2.5, 1000)
-# gx = w[1]/w[0]*x
-# plt.plot(x, gx, 'r', zorder=4)
-
-plt.legend(['y=1', 'y=0', 'w', 'thres = 0'])
+plt.legend(['y=1', 'y=0', 'w'])
 plt.savefig(os.path.join(image_dir, 'proj.png'), bbox_inches='tight')
 plt.show()
 
+
+# ### Projeção em w
 
 # In[17]:
 
@@ -165,8 +164,6 @@ delta = np.array([(np.max(X[:,0]) - np.min(X[:,0])), (np.max(X[:,1]) - np.min(X[
 
 X = (X - np.ones([X.shape[0],1])*mu)*(np.ones([X.shape[0],1])*(1/delta))
 
-
-# ### Projeção em w
 
 # In[18]:
 
@@ -191,6 +188,8 @@ plt.hist([out[mask1], out[mask0]], bins=30, color=['C0', 'C1'])
 plt.savefig(os.path.join(image_dir, 'hist.png'), bbox_inches='tight')
 plt.show()
 
+
+# Como previsto, os dados não podem ser totalmente separados. Na direção projetada, há uma mistura dos dados entre os valores -0.2, 0.2
 
 # ### Curva ROC
 
@@ -221,7 +220,7 @@ def confusion(out, y):
     return tp, fp, fn, tn
 
 
-# In[67]:
+# In[23]:
 
 
 def roc_curve(X, y, w, thres_v, model):
@@ -238,7 +237,7 @@ def roc_curve(X, y, w, thres_v, model):
     return np.array(roc), np.array(f1_v)
 
 
-# In[68]:
+# In[24]:
 
 
 thres_v = [0.01*e for e in range(-200, 201)]
@@ -257,7 +256,7 @@ plt.show()
 
 # ### F1 score
 
-# In[69]:
+# In[28]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -266,35 +265,38 @@ plt.ylabel('F1 Score')
 plt.xlabel('Threshold')
 plt.savefig(os.path.join(image_dir, 'f1.png'), bbox_inches='tight')
 plt.show()
+print("Threshold with highest f1-score: ", f1[np.argmax(f1[:,1]), 0])
 
+
+# 
 
 # ## Regressão Logística
 
-# In[70]:
+# In[29]:
 
 
 g = lambda z: 1/(1 + np.exp(-z))
 
 
-# In[71]:
+# In[30]:
 
 
 lr = lambda Phi, w: g(np.dot(Phi, w))
 
 
-# In[72]:
+# In[31]:
 
 
 mmq = lambda Phi, y: np.dot(np.dot(np.linalg.inv(np.dot(Phi.T, Phi)), Phi.T), y)
 
 
-# In[73]:
+# In[32]:
 
 
 w = mmq(Phi, y)
 
 
-# In[74]:
+# In[33]:
 
 
 def J(y_hat, y):
@@ -304,7 +306,7 @@ def J(y_hat, y):
     return (-J/y.shape[0])[0]
 
 
-# In[75]:
+# In[34]:
 
 
 def gradient_descent_step(Phi, y_hat, y, w, alpha):
@@ -314,7 +316,7 @@ def gradient_descent_step(Phi, y_hat, y, w, alpha):
     return w - alpha*grad
 
 
-# In[76]:
+# In[35]:
 
 
 def gradient_descent(Phi, y, w, alpha, epochs, early_stop_param, v=0):
@@ -336,26 +338,26 @@ def gradient_descent(Phi, y, w, alpha, epochs, early_stop_param, v=0):
     return w
 
 
-# In[77]:
+# In[36]:
 
 
 w = 0.1*np.random.random([3])
 w = w.reshape((w.shape[0], 1))
 
 
-# In[34]:
+# In[37]:
 
 
 w = gradient_descent(Phi, y, w, 5, 5000, 10, 1)
 
 
-# In[35]:
+# In[38]:
 
 
 w
 
 
-# In[36]:
+# In[39]:
 
 
 thres_v = [0.001*e for e in range(0,1001, 5)]
@@ -372,7 +374,7 @@ plt.savefig(os.path.join(image_dir, 'roc_lr.png'), bbox_inches='tight')
 plt.show()
 
 
-# In[37]:
+# In[40]:
 
 
 plt.plot(f1[:,0], f1[:,1], 'C0-')
@@ -381,13 +383,14 @@ plt.ylabel('F1 Score')
 plt.xlabel('Threshold')
 plt.savefig(os.path.join(image_dir, 'f1_lr.png'), bbox_inches='tight')
 plt.show()
+print("Threshold with highest f1-score: ", f1[np.argmax(f1[:,1]), 0])
 
 
-# # Classificação multi-classe
+# # 2 - Classificação multi-classe
 
 # ## Download dataset
 
-# In[38]:
+# In[41]:
 
 
 data_url = 'http://www.dca.fee.unicamp.br/~lboccato/dataset_vehicle.csv'
@@ -396,7 +399,7 @@ data_path = os.path.join(data_dir, 'dataset_vehicle.csv')
 urllib.request.urlretrieve(data_url, data_path)
 
 
-# In[39]:
+# In[42]:
 
 
 get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
@@ -404,14 +407,14 @@ get_ipython().run_cell_magic('bash', '', 'head "../data/dataset_vehicle.csv"')
 
 # ## Importa dataset
 
-# In[40]:
+# In[43]:
 
 
 X = np.loadtxt(data_path, skiprows=1, usecols=range(18), delimiter=',')
 X.shape
 
 
-# In[41]:
+# In[44]:
 
 
 y = []
@@ -422,14 +425,14 @@ with open(data_path) as csvfile:
 len(y)
 
 
-# In[42]:
+# In[45]:
 
 
 classes = list(set(y))
 classes
 
 
-# In[43]:
+# In[46]:
 
 
 Y = np.zeros((len(y), len(classes)))
@@ -445,13 +448,13 @@ for i, e in enumerate(y):
 Y.shape
 
 
-# In[44]:
+# In[47]:
 
 
 holdout_n = int(0.3*len(y))
 
 
-# In[45]:
+# In[48]:
 
 
 mu = np.array([np.average(X[:,i]) for i in range(X.shape[1])])
@@ -460,7 +463,7 @@ delta = np.array([(np.max(X[:,i]) - np.min(X[:,i])) for i in range(X.shape[1])])
 X = (X - np.ones([X.shape[0],1])*mu)*(np.ones([X.shape[0],1])*(1/delta))
 
 
-# In[46]:
+# In[49]:
 
 
 X_test = X[:holdout_n, :]
@@ -470,7 +473,7 @@ Y_train = Y[holdout_n:,:]
 X_train.shape, X_test.shape, Y_train.shape, Y_test.shape
 
 
-# In[47]:
+# In[50]:
 
 
 Phi_train = np.column_stack((np.ones(X_train.shape[0]), X_train))
@@ -479,7 +482,7 @@ Phi_test = np.column_stack((np.ones(X_test.shape[0]), X_test))
 
 # ## Regressão Logística
 
-# In[48]:
+# In[51]:
 
 
 Q = len(classes)
@@ -487,7 +490,7 @@ W = 0.01*np.random.random(((Q*(Q-1))//2, Phi_test.shape[1]))
 W.shape
 
 
-# In[49]:
+# In[52]:
 
 
 k = 0
@@ -500,18 +503,18 @@ for i in range(Q-1):
         aux.append((i, j))
 
 
-# In[50]:
+# In[71]:
 
 
 for i, m in enumerate(mask):
     w = W[i].reshape((W.shape[1], 1))
     y = Y_train[m,aux[i][0]].reshape((Y_train[m].shape[0], 1))
     X = Phi_train[m,:]
-    grad = gradient_descent(X, y, w, 1200, 5000, 1)[:,0]
+    grad = gradient_descent(X, y, w, 1000, 5000, 5)[:,0]
     W[i] = grad[:]
 
 
-# In[54]:
+# In[72]:
 
 
 def one_vs_one(Phi, W):
@@ -523,23 +526,21 @@ def one_vs_one(Phi, W):
         X = Phi
         y = lr(X, w)
         for j, e in enumerate(y):
-            if e > 0.5:
-                votes[j, a[0]] += np.abs(e - 0.5)
-            else:
-                votes[j, a[1]] += np.abs(e - 0.5)
+            votes[j, a[0]] += e
+            votes[j, a[1]] += 1-e
     for e in votes:
         #print(e)
         ans.append(np.argmax(e))
     return ans
 
 
-# In[63]:
+# In[73]:
 
 
 y_hat = one_vs_one(Phi_test, W)
 
 
-# In[64]:
+# In[74]:
 
 
 Y_hat = np.zeros((len(y), len(classes)))
@@ -554,31 +555,31 @@ for i, e in enumerate(y):
         Y_hat[i,3] = 1
 
 
-# In[66]:
+# In[75]:
 
 
-y = np.argmax(Y_test, 1)
-sum((y == np.array(y_hat)))/y.shape[0]
+y_test = np.argmax(Y_test, 1)
+np.sum((y_test == np.array(y_hat)))/y_test.shape[0]
 
 
-# In[86]:
+# In[76]:
 
 
 def confusion(y_hat, y, n_classes):
     ans = np.zeros((n_classes, n_classes))
     for i, (e, f) in enumerate(zip(y, y_hat)):
-        ans[e][f] += 1
+        ans[int(e)][int(f)] += 1
     return ans
 
 
-# In[87]:
+# In[77]:
 
 
 print(classes)
-cm = confusion(y_hat, y, len(classes))
+cm = confusion(y_hat, y_test, len(classes))
 
 
-# In[103]:
+# In[78]:
 
 
 N = len(y)/4
@@ -597,14 +598,86 @@ plt.colorbar(cax)
 plt.show()
 
 
-# In[ ]:
-
-
-for i, e in cm:
-    for 
-
-
 # ## K-nearest Neighbours
+
+# In[79]:
+
+
+d = lambda x, y, p: np.power(np.linalg.norm((x-y), p), 1./p)
+
+
+# In[80]:
+
+
+def neighboors(x, X, k):
+    dist = []
+    for i, e in enumerate(X):
+        dist.append(d(x, e, 2))
+    dist = np.array(dist)
+    ans = [[e, f] for e, f in zip(np.argsort(dist), np.sort(dist))]
+    return ans[:k]
+
+
+# In[81]:
+
+
+def knn(X_train, Y_train, x, k):
+    X_prime = neighboors(x, X_train, k)
+    mask = [n[0] for n in X_prime]
+    classes = np.sum(Y_train[mask], 0)
+    return np.argmax(classes)
+
+
+# In[82]:
+
+
+def knn_predict(X_train, Y_train, X_test, k):
+    y_test = np.empty(X_test.shape[0])
+    for i, x in enumerate(X_test):
+        y_test[i] =  knn(X_train, Y_train, x, k)
+    return y_test
+
+
+# In[83]:
+
+
+y_hat = knn_predict(X_train, Y_train, X_test, 10)
+
+
+# In[84]:
+
+
+y_test = np.argmax(Y_test, 1)
+np.sum((y_test == np.array(y_hat)))/y_test.shape[0]
+
+
+# In[85]:
+
+
+avg_acc = np.sum(cm, 0)/
+
+
+# In[86]:
+
+
+for k in [1, 2, 5, 10, 20, 50]:
+    y_hat = knn_predict(X_train, Y_train, X_test, k)
+    cm = confusion(y_hat, y_test, len(classes))
+    N = len(y)/4
+    cax = plt.imshow(cm, interpolation='nearest', cmap=plt.cm.coolwarm, vmin=0, vmax=N)
+    classNames = classes
+    plt.title('Confusion Matrix')
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    tick_marks = np.arange(len(classNames))
+    plt.xticks(tick_marks, classNames, rotation=45)
+    plt.yticks(tick_marks, classNames)
+    for i, e in enumerate(cm):
+        for j, f in enumerate(e):
+            plt.text(j,i, str(int(cm[i][j])))
+    plt.colorbar(cax)
+    plt.show()
+
 
 # In[ ]:
 
