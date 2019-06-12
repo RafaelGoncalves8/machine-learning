@@ -3,7 +3,7 @@
 
 # Rafael Gonçalves (186062)
 
-# In[1]:
+# In[66]:
 
 
 import os
@@ -12,7 +12,6 @@ import random
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
-import csv
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -23,7 +22,7 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 
 # ## Download dataset
 
-# In[2]:
+# In[67]:
 
 
 train_url = 'http://www.dca.fee.unicamp.br/~lboccato/dados_treinamento.mat'
@@ -40,7 +39,7 @@ urllib.request.urlretrieve(validation_url, validation_path)
 urllib.request.urlretrieve(test_url, test_path)
 
 
-# In[3]:
+# In[68]:
 
 
 train_set = scipy.io.loadmat(train_path)
@@ -48,7 +47,7 @@ val_set = scipy.io.loadmat(validation_path)
 test_set = scipy.io.loadmat(test_path)
 
 
-# In[4]:
+# In[69]:
 
 
 X_train = train_set["X"]
@@ -59,7 +58,7 @@ X_test = test_set["Xt"]
 y_test = test_set["yt"]
 
 
-# In[5]:
+# In[70]:
 
 
 y_train[y_train == -1] = 0
@@ -67,7 +66,7 @@ y_val[y_val == -1] = 0
 y_test[y_test == -1] = 0
 
 
-# In[6]:
+# In[71]:
 
 
 plt.plot(X_train[np.in1d(y_train, 1), 0], X_train[np.in1d(y_train, 1), 1], 'rX')
@@ -86,75 +85,16 @@ plt.show()
 
 # # 1 - Multilayer Perceptron (MLP)
 
-# In[7]:
+# In[72]:
 
 
 C = 1 # number of classes
 D_in = 2 # dimension of input
 
 
-# In[8]:
+# In[73]:
 
 
-H = 10
-epochs = 20
-
-for learning_rate in [0.3, 0.1, 0.06, 0.03, 0.01, 0.03, 0.06]:
-    for m in [0, 0.85, 0.9, 0.95]:
-        print("learning rate:", learning_rate, "momentum:", m)
-        train_losses = []
-        val_losses = []
-
-        model = torch.nn.Sequential(
-            torch.nn.Linear(D_in, H),
-            torch.nn.ReLU(),
-            torch.nn.Linear(H, C),
-            torch.nn.Sigmoid(),
-        )
-
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=m)
-
-        model.train()
-        for epoch in range(epochs):
-            for idx, (x, y) in enumerate(zip(torch.tensor(X_train, dtype=torch.float),
-                                             torch.tensor(y_train, dtype=torch.float))):
-                optimizer.zero_grad()
-                output = model(x)
-                loss = F.binary_cross_entropy(output, y, reduction="mean")
-                loss.backward()
-                optimizer.step()
-            train_losses.append(loss.item())
-
-            model.eval()
-            val_loss = 0
-            correct = 0
-            with torch.no_grad():
-                for data, target in zip(torch.tensor(X_train, dtype=torch.float),
-                                                 torch.tensor(y_train, dtype=torch.float)):
-                    output = model(data)
-                    val_loss += F.binary_cross_entropy(output, target, size_average=False).item()
-                    pred = torch.round(output)
-                    correct += (1 if pred == target else 0)
-            val_loss /= len(y_val)
-            val_losses.append(val_loss)
-        print('Validation set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-            val_loss, correct, len(y_val),
-            100. * correct / len(y_val)))
-
-        plt.plot(train_losses, color='blue')
-        plt.plot(val_losses, color='red')
-        plt.legend(["train", "validation"])
-        plt.yscale("log")
-        plt.title('Learning curve with learning rate of {} and momentum of {} with 10 neurons in hidden layer'.format(learning_rate, m))
-        plt.xlabel('number of training examples seen')
-        plt.ylabel('cross entropy loss')
-        plt.show()
-
-
-# In[9]:
-
-
-learning_rate = 0.01
 epochs = 100
 show_step = 10
 for H in [3, 6, 10, 30, 60, 100]:
@@ -169,7 +109,7 @@ for H in [3, 6, 10, 30, 60, 100]:
         torch.nn.Sigmoid(),
     )
     
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+    optimizer = optim.Adam(model.parameters())
     
     for epoch in range(epochs):
         model.train()
@@ -210,34 +150,33 @@ for H in [3, 6, 10, 30, 60, 100]:
     plt.show()
 
 
-# In[10]:
+# In[53]:
 
 
-epochs = 300
+epochs = 200
 show_step = 10
-H = 30
-models = [None, None, None]
-i = 0
-for learning_rate in [0.006, 0.01, 0.03]:
+H = 60
+
+for H in [30, 40, 50, 60]:
     print("H = ", H, "Learning rate:", learning_rate)
     train_losses = []
     val_losses = []
     
-    models[i] = torch.nn.Sequential(
+    model = torch.nn.Sequential(
         torch.nn.Linear(D_in, H),
         torch.nn.ReLU(),
         torch.nn.Linear(H, C),
         torch.nn.Sigmoid(),
     )
     
-    optimizer = optim.SGD(models[i].parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters())
     
     for epoch in range(epochs):
-        models[i].train()
+        models.train()
         for idx, (data, target) in enumerate(zip(torch.tensor(X_train, dtype=torch.float),
                                          torch.tensor(y_train, dtype=torch.float))):
             optimizer.zero_grad()
-            output = models[i](data)
+            output = model(data)
             loss = F.binary_cross_entropy(output, target)
             loss.backward()
             optimizer.step()
@@ -245,13 +184,13 @@ for learning_rate in [0.006, 0.01, 0.03]:
             print('Train Epoch: {} Loss: {:.6f}'.format(epoch, loss.item()))
         train_losses.append(loss.item())        
     
-        models[i].eval()
+        model.eval()
         val_loss = 0
         correct = 0
         with torch.no_grad():
             for data, target in zip(torch.tensor(X_val, dtype=torch.float),
                                              torch.tensor(y_val, dtype=torch.float)):
-                output = models[i](data)
+                output = model(data)
                 val_loss += F.binary_cross_entropy(output, target, size_average=False).item()
                 pred = torch.round(output)
                 correct += (1 if pred == target else 0)
@@ -260,8 +199,6 @@ for learning_rate in [0.006, 0.01, 0.03]:
     print('\nValidation set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         val_loss, correct, len(y_val),
         100. * correct / len(y_val)))
-    
-    i += 1
     
     plt.plot(train_losses, color='blue')
     plt.plot(val_losses, color='red')
@@ -273,7 +210,37 @@ for learning_rate in [0.006, 0.01, 0.03]:
     plt.show()
 
 
-# In[11]:
+# In[86]:
+
+
+epochs = 200
+H = 30
+
+model = torch.nn.Sequential(
+        torch.nn.Linear(D_in, H),
+        torch.nn.ReLU(),
+        torch.nn.Linear(H, C),
+        torch.nn.Sigmoid(),
+)
+
+X = np.vstack((X_train, X_val))
+y = np.vstack((y_train, y_val))
+
+optimizer = optim.Adam(model.parameters())
+
+for epoch in range(epochs):
+    model.train()
+    for idx, (data, target) in enumerate(zip(torch.tensor(X, dtype=torch.float),
+                                     torch.tensor(y, dtype=torch.float))):
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.binary_cross_entropy(output, target)
+        loss.backward()
+        optimizer.step()
+    print('.', end='')
+
+
+# In[87]:
 
 
 model.eval()
@@ -292,14 +259,7 @@ print('\nTest set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
     100. * correct / len(y_test)))
 
 
-# In[12]:
-
-
-models = [None, None, None]
-models[1] = model
-
-
-# In[13]:
+# In[88]:
 
 
 # Pass test data
@@ -343,40 +303,40 @@ plt.show()
 
 # ## 2 - Support-Vector Machine (SVM)
 
-# In[36]:
+# In[57]:
 
 
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
 from mlxtend.plotting import plot_decision_regions
 
 
-# In[37]:
+# In[58]:
 
 
 clf = SVC(gamma='scale')
 
 
-# In[38]:
+# In[59]:
 
 
 clf.fit(X_train, y_train.ravel())
 
 
-# In[39]:
+# In[60]:
 
 
 y_pred = clf.predict(X_val)
 
 
-# In[40]:
+# In[61]:
 
 
 accuracy_score(y_pred, y_val)
 
 
-# In[41]:
+# In[62]:
 
 
 for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
@@ -397,7 +357,7 @@ for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
         plt.show()
 
 
-# In[42]:
+# In[63]:
 
 
 clf = SVC(C=50, kernel='rbf', gamma='scale')
@@ -414,32 +374,4 @@ print('Accuracy: {}, F1-score: {:.3f}, AUC: {:.3f}'.format(ac, f1, auc_score))
 
 plot_decision_regions(X_test, y_test.ravel(), clf=clf)
 plt.show()
-
-
-# In[43]:
-
-
-false_positive_rate, true_positive_rate, thresholds = roc_curve(y_test, y_pred)
-roc_auc = auc(false_positive_rate, true_positive_rate)
-
-
-# In[44]:
-
-
-plt.title('Receiver Operating Characteristic')
-plt.plot(false_positive_rate, true_positive_rate, 'b',
-label='AUC = %0.2f'% roc_auc)
-plt.legend(loc='lower right')
-plt.plot([0,1],[0,1],'r--')
-plt.xlim([-0.1,1.2])
-plt.ylim([-0.1,1.2])
-plt.ylabel('True Positive Rate')
-plt.xlabel('False Positive Rate')
-plt.show()
-
-
-# In[ ]:
-
-
-
 
