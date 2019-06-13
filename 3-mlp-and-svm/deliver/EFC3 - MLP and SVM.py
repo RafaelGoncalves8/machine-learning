@@ -115,7 +115,7 @@ X_test_t = torch.tensor(X_test, dtype=torch.float)
 y_test_t = torch.tensor(y_test, dtype=torch.float)
 
 
-# In[ ]:
+# In[9]:
 
 
 # batch training
@@ -171,7 +171,7 @@ for H in [3, 6, 10, 30, 60]:
     plt.show()
 
 
-# In[ ]:
+# In[10]:
 
 
 # online training
@@ -186,7 +186,6 @@ for H in [3, 6, 10, 30, 60]:
     model = torch.nn.Sequential(
         torch.nn.Linear(D_in, H),
         torch.nn.ReLU(),
-        torch.nn.Dropout(0.5),
         torch.nn.Linear(H, C),
         torch.nn.Sigmoid(),
     )
@@ -238,12 +237,11 @@ for H in [3, 6, 10, 30, 60]:
 
 
 epochs = 300
-H = 6
+H = 30
 
 model = torch.nn.Sequential(
         torch.nn.Linear(D_in, H),
         torch.nn.ReLU(),
-        torch.nn.Dropout(0.5),
         torch.nn.Linear(H, C),
         torch.nn.Sigmoid(),
 )
@@ -289,7 +287,7 @@ print('Test set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
 
 # Pass test data
 X_test_t = torch.FloatTensor(X_test)
-y_hat_test = models[1](X_test_t)
+y_hat_test = model(X_test_t)
 y_hat_test_class = np.where(y_hat_test.detach().numpy()<0.5, 0, 1)
 test_accuracy = np.sum(y_test.reshape(-1,1)==y_hat_test_class) / len(y_test)
 print("Test Accuracy {:.2f}".format(test_accuracy))
@@ -312,7 +310,7 @@ data = np.hstack((XX.ravel().reshape(-1,1),
 
 # Pass data to predict method
 data_t = torch.FloatTensor(data)
-db_prob = models[1](data_t)
+db_prob = model(data_t)
 
 clf = np.where(db_prob<0.5,0,1)
 
@@ -329,31 +327,31 @@ plt.show()
 
 # ## 2 - Support-Vector Machine (SVM)
 
-# In[ ]:
+# In[16]:
 
 
 clf = SVC(gamma='scale')
 
 
-# In[ ]:
+# In[17]:
 
 
 clf.fit(X_train, y_train.ravel())
 
 
-# In[ ]:
+# In[18]:
 
 
 y_pred = clf.predict(X_val)
 
 
-# In[ ]:
+# In[19]:
 
 
 accuracy_score(y_pred, y_val)
 
 
-# In[ ]:
+# In[22]:
 
 
 for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
@@ -371,10 +369,11 @@ for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
         print('Accuracy: {}, F1-score: {:.3f}, AUC: {:.3f}'.format(ac, f1, auc_score))
         
         plot_decision_regions(X_val, y_val.ravel(), clf=clf)
+        plt.savefig(os.path.join(image_dir, 'regions_svm_{}_{}.png'.format(C, kernel)), bbox_inches='tight')
         plt.show()
 
 
-# In[ ]:
+# In[23]:
 
 
 clf = SVC(C=50, kernel='rbf', gamma='scale')
@@ -390,5 +389,24 @@ print('SVM with C =', 50, 'and kernel =', 'rbf')
 print('Accuracy: {}, F1-score: {:.3f}, AUC: {:.3f}'.format(ac, f1, auc_score))
 
 plot_decision_regions(X_test, y_test.ravel(), clf=clf)
+plt.savefig(os.path.join(image_dir, 'test_regions_svm_{}_{}.png'.format(C, kernel)), bbox_inches='tight')
 plt.show()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
