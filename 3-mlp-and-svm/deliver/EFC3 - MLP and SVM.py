@@ -233,7 +233,7 @@ for H in [3, 6, 10, 30, 60]:
     plt.show()
 
 
-# In[ ]:
+# In[11]:
 
 
 epochs = 300
@@ -263,7 +263,7 @@ for epoch in range(epochs):
     print('.', end='')
 
 
-# In[ ]:
+# In[12]:
 
 
 model.eval()
@@ -282,7 +282,7 @@ print('Test set: Avg. loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
     100. * correct / len(y_test)))
 
 
-# In[ ]:
+# In[13]:
 
 
 # Pass test data
@@ -327,31 +327,31 @@ plt.show()
 
 # ## 2 - Support-Vector Machine (SVM)
 
-# In[16]:
+# In[14]:
 
 
 clf = SVC(gamma='scale')
 
 
-# In[17]:
+# In[15]:
 
 
 clf.fit(X_train, y_train.ravel())
 
 
-# In[18]:
+# In[16]:
 
 
 y_pred = clf.predict(X_val)
 
 
-# In[19]:
+# In[17]:
 
 
 accuracy_score(y_pred, y_val)
 
 
-# In[22]:
+# In[26]:
 
 
 for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
@@ -366,18 +366,21 @@ for kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
         
         print('===')
         print('SVM with C =', c, 'and kernel =', kernel)
+        print('Number of support-vectors:', len(clf.support_))
         print('Accuracy: {}, F1-score: {:.3f}, AUC: {:.3f}'.format(ac, f1, auc_score))
         
         plot_decision_regions(X_val, y_val.ravel(), clf=clf)
-        plt.savefig(os.path.join(image_dir, 'regions_svm_{}_{}.png'.format(C, kernel)), bbox_inches='tight')
+        plt.savefig(os.path.join(image_dir, 'regions_svm_{}_{}.png'.format(c, kernel)), bbox_inches='tight')
         plt.show()
 
 
-# In[23]:
+# In[22]:
 
 
 clf = SVC(C=50, kernel='rbf', gamma='scale')
-clf.fit(X_train, y_train.ravel())
+
+
+clf.fit(X, y.ravel())
 
 y_pred = clf.predict(X_test)
 ac = accuracy_score(y_test, y_pred)
@@ -389,20 +392,8 @@ print('SVM with C =', 50, 'and kernel =', 'rbf')
 print('Accuracy: {}, F1-score: {:.3f}, AUC: {:.3f}'.format(ac, f1, auc_score))
 
 plot_decision_regions(X_test, y_test.ravel(), clf=clf)
-plt.savefig(os.path.join(image_dir, 'test_regions_svm_{}_{}.png'.format(C, kernel)), bbox_inches='tight')
+plt.savefig(os.path.join(image_dir, 'test_regions_svm_{}_{}.png'.format('50', 'rbf')), bbox_inches='tight')
 plt.show()
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
